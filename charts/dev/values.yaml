@@ -3,7 +3,7 @@ services:
   backend:
     containerName: newsify-backend
     image: nkwn/newsify-backend
-    tag: latest-577bbb1
+    tag: latest-750aa7e
     port: 8080
     ingress:
       enabled: true
@@ -15,7 +15,7 @@ services:
   audio-service:
     containerName: audio-service
     image: nkwn/newsify-audio-service
-    tag: latest-213f382
+    tag: latest-ece5fd2
     port: 8000
     ingress:
       enabled: true
@@ -27,7 +27,7 @@ services:
   trending-service:
     containerName: trending-service
     image: nkwn/newsify-trending-service
-    tag: latest-8b1afce
+    tag: latest-fd15924
     port: 8001
     ingress:
       enabled: true

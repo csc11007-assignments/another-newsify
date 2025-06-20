@@ -37,5 +37,15 @@ services:
         nginx.ingress.kubernetes.io/rewrite-target: /$2
         nginx.ingress.kubernetes.io/use-regex: "true"
   frontend:
+    containerName: frontend
+    image: nkwn/newsify-frontend
     tag: dev-14df1ed
+    port: 3000
+    ingress:
+      enabled: true
+      host: dev.backend.id.vn
+      path: "/"
+      annotations:
+        nginx.ingress.kubernetes.io/rewrite-target: /$2
+        nginx.ingress.kubernetes.io/use-regex: "true"
 replicaCount: 1

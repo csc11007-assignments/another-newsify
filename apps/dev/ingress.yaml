@@ -5,13 +5,36 @@ metadata:
   namespace: newsify-dev
   annotations:
     kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+    nginx.ingress.kubernetes.io/use-regex: "true"
 spec:
   ingressClassName: nginx
   rules:
     - host: dev.backend.id.vn
       http:
         paths:
-          - path: "/"
+          - path: /api(/|$)(.*)
+            pathType: Prefix
+            backend:
+              service:
+                name: newsify-backend
+                port:
+                  number: 8080
+          - path: /audio(/|$)(.*)
+            pathType: Prefix
+            backend:
+              service:
+                name: audio-service
+                port:
+                  number: 8000
+          - path: /trending(/|$)(.*)
+            pathType: Prefix
+            backend:
+              service:
+                name: trending-service
+                port:
+                  number: 8001
+          - path: /(.*)
             pathType: Prefix
             backend:
               service:

@@ -8,7 +8,7 @@ services:
     ingress:
       enabled: true
       host: dev.backend.id.vn
-      path: "/api"
+      path: /api(/|$)(.*)
       annotations:
         nginx.ingress.kubernetes.io/rewrite-target: /$2
         nginx.ingress.kubernetes.io/use-regex: "true"

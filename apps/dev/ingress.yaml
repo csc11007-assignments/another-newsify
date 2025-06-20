@@ -5,22 +5,16 @@ metadata:
   namespace: newsify-dev
   annotations:
     kubernetes.io/ingress.class: nginx
-    cert-manager.io/cluster-issuer: "letsencrypt-prod"
-    nginx.ingress.kubernetes.io/ssl-redirect: "true"
 spec:
   ingressClassName: nginx
-  tls:
-  - hosts:
-    - dev.backend.id.vn
-    secretName: dev-backend-id-vn-tls
   rules:
-  - host: dev.backend.id.vn
-    http:
-      paths:
-      - path: "/"
-        pathType: Prefix
-        backend:
-          service:
-            name: newsify-backend
-            port:
-              number: 8080
+    - host: dev.backend.id.vn
+      http:
+        paths:
+          - path: "/"
+            pathType: Prefix
+            backend:
+              service:
+                name: newsify-backend
+                port:
+                  number: 8080

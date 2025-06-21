@@ -9,6 +9,7 @@ interface CategoryTabsProps {
     onChange: (category: string) => void;
 }
 
+// CategoryTabs component to display a list of categories as tabs
 const CategoryTabs: React.FC<CategoryTabsProps> = ({
     categories,
     activeCategory,

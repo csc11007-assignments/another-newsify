@@ -37,9 +37,64 @@ jobs:
       - name: Run tests
         working-directory: ./backend
         run: pnpm test
+
+                    - name: Run unit tests (with Jest)
+              run: cd server && pnpm test
+
+            - name: Run test coverage (with Jest)
+              run: cd server && pnpm test:cov
+
+            - name: Install jq and bc
+              run: |
+                  sudo apt-get update
+                  sudo apt-get install -y jq bc
+
+            - name: Display test coverage summary
+              run: cat server/coverage/coverage-summary.json | jq .
+
+            - name: Check coverage threshold (70% lines)
+              run: |
+                  COVERAGE=$(cat server/coverage/coverage-summary.json | jq '.total.lines.pct')
+                  echo "Line coverage: $COVERAGE%"
+                  if (( $(echo "$COVERAGE < 70" | bc -l) )); then
+                    echo "Coverage is below threshold of 70%!"
+                    exit 1
+                  else
+                    echo "Coverage meets threshold."
+                  fi
+                  mv server/coverage/lcov-report coverage_report
+
+            - name: Upload Coverage Report as Artifact
+              uses: actions/upload-artifact@v4
+              with:
+                  name: coverage_report
+                  path: coverage_report
+
+  deploy-test-coverage:
+      needs: build
+      runs-on: ubuntu-latest
+      permissions:
+          contents: write
+
+      steps:
+          - name: Checkout Repository
+            uses: actions/checkout@v4
+
+          - name: Download Coverage Report Artifact
+            uses: actions/download-artifact@v4
+            with:
+                name: coverage_report
+                path: coverage_report
+
+          - name: Deploy to GitHub Pages
+            uses: JamesIves/github-pages-deploy-action@v4
+            with:
+                branch: gh-pages
+                folder: coverage_report
+                clean: true
     
-  build-and-push:
-    needs: build
+  push-images:
+    needs: test
     runs-on: ubuntu-latest
     outputs:
       tag: ${{ steps.set_output_vars.outputs.tag }}
@@ -122,7 +177,7 @@ jobs:
           echo "env=${{ steps.determine_tag.outputs.env }}" >> $GITHUB_OUTPUT
 
   update-infrastructure:
-    needs: build-and-push
+    needs: push-images
     uses: ./.github/workflows/infrastructure-update.yml
     with:
       service: backend

@@ -25,6 +25,7 @@ ENVIRONMENT = os.getenv("ENV", "unknown")
 
 logger.info(f"Starting audio service in {ENVIRONMENT} environment")
 
+# inti
 app = FastAPI(
     title="Audio Service API",
     description="API for generating podcasts from articles",

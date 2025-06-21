@@ -5,7 +5,7 @@ import { ApiOperation, ApiBearerAuth, ApiResponse } from '@nestjs/swagger';
 import { ATAuthGuard } from '../auth/guards/at-auth.guard';
 import { ProfileDto } from '../auth/dtos/cred.dto';
 
-// users.controller.ts
+// User Controller to handle user-related requests
 @Controller('users')
 export class UsersController {
     constructor(private readonly usersService: UsersService) {}

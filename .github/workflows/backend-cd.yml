@@ -1,7 +1,7 @@
 name: Backend Service CD
 
 on:
-  push: # push policy
+  push:
     branches: [ main, dev ]
     paths:
       - 'backend/**'
@@ -95,8 +95,8 @@ jobs:
     needs: deploy-test-coverage
     runs-on: ubuntu-latest
     outputs:
-      tag: ${{ steps.set_job_outputs_simple.outputs.tag }}
-      env: ${{ steps.set_job_outputs_simple.outputs.env }}
+      tag: ${{ steps.determine_tag.outputs.tag }}
+      env: ${{ steps.determine_tag.outputs.env }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -113,12 +113,6 @@ jobs:
       - name: Determine image tag
         id: determine_tag
         run: |
-          echo "=== DEBUGGING BRANCH AND TAG GENERATION ==="
-          echo "GITHUB_REF: $GITHUB_REF"
-          echo "GITHUB_REF_NAME: $GITHUB_REF_NAME"
-          echo "github.ref: ${{ github.ref }}"
-          echo "github.ref_name: ${{ github.ref_name }}"
-          
           # Get short commit SHA
           SHORT_SHA=$(git rev-parse --short HEAD)
           
@@ -128,115 +122,29 @@ jobs:
           echo "Debug: BRANCH_NAME = $BRANCH_NAME"
           echo "Debug: SHORT_SHA = $SHORT_SHA"
           
-          # Determine the tag based on branch - use cleaner approach
+          # Determine the tag based on branch
           if [[ "$BRANCH_NAME" == "main" ]]; then
-            TAG="latest-${SHORT_SHA}"
+            TAG="main-${SHORT_SHA}"
             ENV="staging"
-            echo "Branch is MAIN - setting TAG=$TAG, ENV=$ENV"
           elif [[ "$BRANCH_NAME" == "dev" ]]; then
             TAG="dev-${SHORT_SHA}"
             ENV="dev"
-            echo "Branch is DEV - setting TAG=$TAG, ENV=$ENV"
           else
             # For any other branch, use branch name + commit SHA
             SAFE_BRANCH_NAME=$(echo $BRANCH_NAME | sed 's/\//-/g')
             TAG="${SAFE_BRANCH_NAME}-${SHORT_SHA}"
             ENV="${SAFE_BRANCH_NAME}"
-            echo "Branch is OTHER ($BRANCH_NAME) - setting TAG=$TAG, ENV=$ENV"
           fi
           
-          # Clean the tag to ensure no special characters
-          TAG=$(echo "$TAG" | tr -cd '[:alnum:]-._')
-          ENV=$(echo "$ENV" | tr -cd '[:alnum:]-._')
-          
-          echo "=== FINAL VALUES (after cleaning) ==="
           echo "Generated TAG: $TAG"
           echo "Generated ENV: $ENV"
-          echo "TAG length: ${#TAG}"
-          echo "ENV length: ${#ENV}"
           
-          # Show character by character what's in TAG
-          echo "TAG character by character:"
-          for (( i=0; i<${#TAG}; i++ )); do
-            char="${TAG:$i:1}"
-            printf "Position %d: '%s' (ASCII: %d)\n" $i "$char" "'$char"
-          done
-          
-          # Verify values are not empty
-          if [[ -z "$TAG" ]]; then
-            echo "ERROR: TAG is empty after generation!"
-            exit 1
-          fi
-          
-          if [[ -z "$ENV" ]]; then
-            echo "ERROR: ENV is empty after generation!"
-            exit 1
-          fi
-          
-          # Set outputs directly - use printf to ensure clean output
-          printf "tag=%s\n" "$TAG" >> $GITHUB_OUTPUT
-          printf "env=%s\n" "$ENV" >> $GITHUB_OUTPUT
-          
-          echo "=== GITHUB_OUTPUT FILE CONTENTS ==="
-          cat $GITHUB_OUTPUT || echo "Could not read GITHUB_OUTPUT file"
-          
-          echo "=== GITHUB_OUTPUT FILE HEX DUMP ==="
-          hexdump -C $GITHUB_OUTPUT | head -20
-
-      - name: Verify step outputs
-        run: |
-          echo "=== VERIFYING STEP OUTPUTS ==="
-          echo "determine_tag.outputs.tag: ${{ steps.determine_tag.outputs.tag }}"
-          echo "determine_tag.outputs.env: ${{ steps.determine_tag.outputs.env }}"
-          
-          if [[ -z "${{ steps.determine_tag.outputs.tag }}" ]]; then
-            echo "ERROR: determine_tag.outputs.tag is empty!"
-            exit 1
-          fi
-          
-          if [[ -z "${{ steps.determine_tag.outputs.env }}" ]]; then
-            echo "ERROR: determine_tag.outputs.env is empty!"
-            exit 1
-          fi
-          
-      - name: Set job outputs SIMPLE (no cleaning)
-        id: set_job_outputs_simple
-        run: |
-          echo "=== SETTING JOB OUTPUTS SIMPLE - NO CHARACTER CLEANING ==="
-          
-          # Generate values without any cleaning
-          SHORT_SHA=$(git rev-parse --short HEAD)
-          BRANCH_NAME=${GITHUB_REF#refs/heads/}
-          
-          if [[ "$BRANCH_NAME" == "main" ]]; then
-            TAG="latest-${SHORT_SHA}"
-            ENV="staging"
-          elif [[ "$BRANCH_NAME" == "dev" ]]; then
-            TAG="dev-${SHORT_SHA}"
-            ENV="dev"
-          else
-            SAFE_BRANCH_NAME=$(echo $BRANCH_NAME | sed 's/\//-/g')
-            TAG="${SAFE_BRANCH_NAME}-${SHORT_SHA}"
-            ENV="${SAFE_BRANCH_NAME}"
-          fi
-          
-          echo "Simple TAG: '$TAG'"
-          echo "Simple ENV: '$ENV'"
-          
-          # Clear and set outputs without any character manipulation
-          > $GITHUB_OUTPUT
+          # Set outputs directly - this will be used by the job outputs
           echo "tag=$TAG" >> $GITHUB_OUTPUT
           echo "env=$ENV" >> $GITHUB_OUTPUT
-          
-          echo "=== SIMPLE GITHUB_OUTPUT CONTENTS ==="
+
           cat $GITHUB_OUTPUT
-
-      - name: Test reading simple outputs
-        run: |
-          echo "=== TESTING SIMPLE STEP OUTPUTS ==="
-          echo "Simple tag: '${{ steps.set_job_outputs_simple.outputs.tag }}'"
-          echo "Simple env: '${{ steps.set_job_outputs_simple.outputs.env }}'"
-
+          
       - name: Build and push
         uses: docker/build-push-action@v4
         with:
@@ -272,62 +180,8 @@ jobs:
             MILVUS_ADDRESS=${{ secrets.MILVUS_ADDRESS }}
             MILVUS_TOKEN=${{ secrets.MILVUS_TOKEN }}
 
-      - name: Final job output verification
-        run: |
-          echo "=== FINAL JOB OUTPUT VERIFICATION ==="
-          echo "This job will output:"
-          echo "tag: ${{ steps.determine_tag.outputs.tag }}"
-          echo "env: ${{ steps.determine_tag.outputs.env }}"
-          echo "simple outputs tag: ${{ steps.set_job_outputs_simple.outputs.tag }}"
-          echo "simple outputs env: ${{ steps.set_job_outputs_simple.outputs.env }}"
-
-  debug-outputs:
-    needs: push-images
-    runs-on: ubuntu-latest
-    steps:
-      - name: Debug job outputs before calling infrastructure update
-        run: |
-          echo "=== DEBUGGING OUTPUTS FROM PUSH-IMAGES JOB ==="
-          echo "push-images job outputs:"
-          echo "needs.push-images.outputs.tag: '${{ needs.push-images.outputs.tag }}'"
-          echo "needs.push-images.outputs.env: '${{ needs.push-images.outputs.env }}'"
-          
-          echo ""
-          echo "=== HEX DUMP OF TAG VALUE ==="
-          TAG_VALUE="${{ needs.push-images.outputs.tag }}"
-          echo "Tag value: '$TAG_VALUE'"
-          echo "Tag length: ${#TAG_VALUE}"
-          if [[ -n "$TAG_VALUE" ]]; then
-            echo "Tag hex dump:"
-            echo -n "$TAG_VALUE" | hexdump -C
-          else
-            echo "Tag is empty or null"
-          fi
-          
-          echo ""
-          echo "=== GITHUB CONTEXT ==="
-          echo "github.ref_name: '${{ github.ref_name }}'"
-          echo "Current branch: '${{ github.ref_name }}'"
-          
-          # Validate that we have the outputs we expect
-          if [[ -z "${{ needs.push-images.outputs.tag }}" ]]; then
-            echo "ERROR: needs.push-images.outputs.tag is empty!"
-            echo "This means the push-images job did not set the tag output correctly"
-            exit 1
-          else
-            echo "SUCCESS: Tag output is available: '${{ needs.push-images.outputs.tag }}'"
-          fi
-          
-          if [[ -z "${{ needs.push-images.outputs.env }}" ]]; then
-            echo "ERROR: needs.push-images.outputs.env is empty!"
-            echo "This means the push-images job did not set the env output correctly"
-            exit 1
-          else
-            echo "SUCCESS: Env output is available: '${{ needs.push-images.outputs.env }}'"
-          fi
-
   update-infrastructure:
-    needs: [push-images, debug-outputs]
+    needs: push-images
     uses: ./.github/workflows/infrastructure-update.yml
     with:
       service: backend

@@ -34,14 +34,12 @@ jobs:
         working-directory: ./backend
         run: pnpm build
 
-      - name: Run tests
+      - name: Run unit tests (with Jest)
         working-directory: ./backend
         run: pnpm test
 
-      - name: Run unit tests (with Jest)
-        run: pnpm test
-
       - name: Run test coverage (with Jest)
+        working-directory: ./backend
         run: pnpm test:cov
 
       - name: Install jq and bc

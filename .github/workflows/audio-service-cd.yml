@@ -34,6 +34,54 @@ jobs:
           sleep 5
           curl -s http://localhost:8000/health || curl -s http://localhost:8000/ || true
           pkill -f uvicorn || true
+      - name: Run unit tests (with pytest)
+        working-directory: ./services/audio-service
+        run: |
+          python -m pytest 
+
+      - name: Run test coverage (with pytest)
+        working-directory: ./services/trending-service
+        run: |
+          python -m pytest --cov=app --cov-report=term-missing --cov-report=json --cov-report=html
+
+      - name: Install jq for coverage parsing
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq bc
+
+      - name: Display test coverage summary
+        working-directory: ./services/trending-service
+        run: |
+          if [ -f coverage.json ]; then
+            echo "=== COVERAGE SUMMARY ==="
+            jq -r '"Total coverage: " + (.totals.percent_covered | tostring) + "%"' coverage.json
+            jq -r '"Lines covered: " + (.totals.covered_lines | tostring) + "/" + (.totals.num_statements | tostring)' coverage.json
+          else
+            echo "Coverage report not found!"
+            exit 1
+          fi
+
+      - name: Check coverage threshold (50% for trending service)
+        working-directory: ./services/trending-service
+        run: |
+          if [ -f coverage.json ]; then
+            COVERAGE=$(jq -r '.totals.percent_covered' coverage.json)
+            echo "Line coverage: $COVERAGE%"
+            
+            THRESHOLD=50
+            
+            if (( $(echo "$COVERAGE < $THRESHOLD" | bc -l) )); then
+              echo "Coverage is below threshold of $THRESHOLD%!"
+              echo "Current coverage: $COVERAGE%"
+              exit 1
+            else
+              echo "Coverage meets threshold of $THRESHOLD%"
+              echo "Current coverage: $COVERAGE%"
+            fi
+          else
+            echo "Coverage report not found!"
+            exit 1
+          fi
 
   build-and-push:
     needs: build

@@ -94,6 +94,9 @@ jobs:
   push-images:
     needs: deploy-test-coverage
     runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.determine_tag.outputs.tag }}
+      env: ${{ steps.determine_tag.outputs.env }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -116,20 +119,32 @@ jobs:
           # Extract branch name from GITHUB_REF
           BRANCH_NAME=${GITHUB_REF#refs/heads/}
           
+          echo "Debug: BRANCH_NAME = $BRANCH_NAME"
+          echo "Debug: SHORT_SHA = $SHORT_SHA"
+          
           # Determine the tag based on branch
           if [[ "$BRANCH_NAME" == "main" ]]; then
-            echo "tag=latest-${SHORT_SHA}" >> $GITHUB_OUTPUT
-            echo "env=staging" >> $GITHUB_OUTPUT
+            TAG="latest-${SHORT_SHA}"
+            ENV="staging"
           elif [[ "$BRANCH_NAME" == "dev" ]]; then
-            echo "tag=dev-${SHORT_SHA}" >> $GITHUB_OUTPUT
-            echo "env=dev" >> $GITHUB_OUTPUT
+            TAG="dev-${SHORT_SHA}"
+            ENV="dev"
           else
             # For any other branch, use branch name + commit SHA
             SAFE_BRANCH_NAME=$(echo $BRANCH_NAME | sed 's/\//-/g')
-            echo "tag=${SAFE_BRANCH_NAME}-${SHORT_SHA}" >> $GITHUB_OUTPUT
-            echo "env=${SAFE_BRANCH_NAME}" >> $GITHUB_OUTPUT
+            TAG="${SAFE_BRANCH_NAME}-${SHORT_SHA}"
+            ENV="${SAFE_BRANCH_NAME}"
           fi
-      
+          
+          echo "Generated TAG: $TAG"
+          echo "Generated ENV: $ENV"
+          
+          # Set outputs directly - this will be used by the job outputs
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+          echo "env=$ENV" >> $GITHUB_OUTPUT
+
+          cat $GITHUB_OUTPUT
+          
       - name: Build and push
         uses: docker/build-push-action@v4
         with:
@@ -164,16 +179,6 @@ jobs:
             ELS_PASSWORD=${{ secrets.ELS_PASSWORD }}
             MILVUS_ADDRESS=${{ secrets.MILVUS_ADDRESS }}
             MILVUS_TOKEN=${{ secrets.MILVUS_TOKEN }}
-            
-      - name: Set output variables
-        id: set_output_vars
-        run: |
-          echo "tag=${{ steps.determine_tag.outputs.tag }}" >> $GITHUB_OUTPUT
-          echo "env=${{ steps.determine_tag.outputs.env }}" >> $GITHUB_OUTPUT
-
-    outputs:
-      tag: ${{ steps.set_output_vars.outputs.tag }}
-      env: ${{ steps.set_output_vars.outputs.env }}
 
   update-infrastructure:
     needs: push-images

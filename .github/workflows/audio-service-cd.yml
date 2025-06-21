@@ -29,18 +29,67 @@ jobs:
                 
       - name: Test uvicorn server launch
         working-directory: ./services/audio-service
+        env:
+          DB_NAME: ${{ secrets.DB_NAME }}
+          DB_PORT: ${{ secrets.DB_PORT }}
+          DATABASE: ${{ secrets.DATABASE }}
+          DB_USERNAME: ${{ secrets.DB_USERNAME }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          DB_DIALECT: ${{ secrets.DB_DIALECT }}
+          DO_DB_NAME: ${{ secrets.DO_DB_NAME }}
+          DO_DB_PORT: ${{ secrets.DO_DB_PORT }}
+          DO_DB_HOST: ${{ secrets.DO_DB_HOST }}
+          DO_DB_USERNAME: ${{ secrets.DO_DB_USERNAME }}
+          DO_DB_PASSWORD: ${{ secrets.DO_DB_PASSWORD }}
+          DO_SPACES_ACCESS_KEY: ${{ secrets.DO_SPACES_ACCESS_KEY }}
+          DO_SPACES_SECRET_KEY: ${{ secrets.DO_SPACES_SECRET_KEY }}
+          DO_SPACES_BUCKET: ${{ secrets.DO_SPACES_BUCKET }}
+          DO_SPACES_ENDPOINT: ${{ secrets.DO_SPACES_ENDPOINT }}
         run: |
           uvicorn app.main:app --host 0.0.0.0 --port 8000 &
           sleep 5
           curl -s http://localhost:8000/health || curl -s http://localhost:8000/ || true
           pkill -f uvicorn || true
+
       - name: Run unit tests (with pytest)
         working-directory: ./services/audio-service
+        env:
+          DB_NAME: ${{ secrets.DB_NAME }}
+          DB_PORT: ${{ secrets.DB_PORT }}
+          DATABASE: ${{ secrets.DATABASE }}
+          DB_USERNAME: ${{ secrets.DB_USERNAME }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          DB_DIALECT: ${{ secrets.DB_DIALECT }}
+          DO_DB_NAME: ${{ secrets.DO_DB_NAME }}
+          DO_DB_PORT: ${{ secrets.DO_DB_PORT }}
+          DO_DB_HOST: ${{ secrets.DO_DB_HOST }}
+          DO_DB_USERNAME: ${{ secrets.DO_DB_USERNAME }}
+          DO_DB_PASSWORD: ${{ secrets.DO_DB_PASSWORD }}
+          DO_SPACES_ACCESS_KEY: ${{ secrets.DO_SPACES_ACCESS_KEY }}
+          DO_SPACES_SECRET_KEY: ${{ secrets.DO_SPACES_SECRET_KEY }}
+          DO_SPACES_BUCKET: ${{ secrets.DO_SPACES_BUCKET }}
+          DO_SPACES_ENDPOINT: ${{ secrets.DO_SPACES_ENDPOINT }}
         run: |
           python -m pytest 
 
       - name: Run test coverage (with pytest)
-        working-directory: ./services/trending-service
+        working-directory: ./services/audio-service  # Fix: was trending-service
+        env:
+          DB_NAME: ${{ secrets.DB_NAME }}
+          DB_PORT: ${{ secrets.DB_PORT }}
+          DATABASE: ${{ secrets.DATABASE }}
+          DB_USERNAME: ${{ secrets.DB_USERNAME }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          DB_DIALECT: ${{ secrets.DB_DIALECT }}
+          DO_DB_NAME: ${{ secrets.DO_DB_NAME }}
+          DO_DB_PORT: ${{ secrets.DO_DB_PORT }}
+          DO_DB_HOST: ${{ secrets.DO_DB_HOST }}
+          DO_DB_USERNAME: ${{ secrets.DO_DB_USERNAME }}
+          DO_DB_PASSWORD: ${{ secrets.DO_DB_PASSWORD }}
+          DO_SPACES_ACCESS_KEY: ${{ secrets.DO_SPACES_ACCESS_KEY }}
+          DO_SPACES_SECRET_KEY: ${{ secrets.DO_SPACES_SECRET_KEY }}
+          DO_SPACES_BUCKET: ${{ secrets.DO_SPACES_BUCKET }}
+          DO_SPACES_ENDPOINT: ${{ secrets.DO_SPACES_ENDPOINT }}
         run: |
           python -m pytest --cov=app --cov-report=term-missing --cov-report=json --cov-report=html
 
@@ -50,7 +99,7 @@ jobs:
           sudo apt-get install -y jq bc
 
       - name: Display test coverage summary
-        working-directory: ./services/trending-service
+        working-directory: ./services/audio-service 
         run: |
           if [ -f coverage.json ]; then
             echo "=== COVERAGE SUMMARY ==="
@@ -61,8 +110,8 @@ jobs:
             exit 1
           fi
 
-      - name: Check coverage threshold (50% for trending service)
-        working-directory: ./services/trending-service
+      - name: Check coverage threshold (60% for audio service)  
+        working-directory: ./services/audio-service  
         run: |
           if [ -f coverage.json ]; then
             COVERAGE=$(jq -r '.totals.percent_covered' coverage.json)

@@ -121,26 +121,17 @@ jobs:
           
           # Determine the tag based on branch
           if [[ "$BRANCH_NAME" == "main" ]]; then
-            TAG="latest-${SHORT_SHA}"
-            ENV="staging"
+            echo "tag=latest-${SHORT_SHA}" >> $GITHUB_OUTPUT
+            echo "env=staging" >> $GITHUB_OUTPUT
           elif [[ "$BRANCH_NAME" == "dev" ]]; then
-            TAG="dev-${SHORT_SHA}"
-            ENV="dev"
+            echo "tag=dev-${SHORT_SHA}" >> $GITHUB_OUTPUT
+            echo "env=dev" >> $GITHUB_OUTPUT
           else
             # For any other branch, use branch name + commit SHA
             SAFE_BRANCH_NAME=$(echo $BRANCH_NAME | sed 's/\//-/g')
-            TAG="${SAFE_BRANCH_NAME}-${SHORT_SHA}"
-            ENV="${SAFE_BRANCH_NAME}"
+            echo "tag=${SAFE_BRANCH_NAME}-${SHORT_SHA}" >> $GITHUB_OUTPUT
+            echo "env=${SAFE_BRANCH_NAME}" >> $GITHUB_OUTPUT
           fi
-          
-          # Debug output
-          echo "Generated tag: $TAG"
-          echo "Generated env: $ENV"
-          
-          # Set outputs
-          echo "tag=$TAG" >> $GITHUB_OUTPUT
-          echo "env=$ENV" >> $GITHUB_OUTPUT
-
       
       - name: Build and push
         uses: docker/build-push-action@v4
@@ -193,3 +184,7 @@ jobs:
       source_branch: ${{ github.ref_name }}
     secrets:
       ARGOCD_GITHUB_TOKEN: ${{ secrets.ARGOCD_GITHUB_TOKEN }}
+    steps:
+      - name: Checkout code
+        run: |
+          echo "${{ needs.push-images.outputs }}"

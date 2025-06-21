@@ -29,11 +29,59 @@ jobs:
     steps:
       - name: Debug inputs
         run: |
-          echo "Received inputs:"
-          echo "Service: ${{ inputs.service }}"
-          echo "Tag: ${{ inputs.tag }}"
-          echo "Environment: ${{ inputs.env }}"
-          echo "Source branch: ${{ inputs.source_branch }}"
+          echo "=== COMPREHENSIVE INPUT DEBUGGING ==="
+          echo "Raw GitHub context:"
+          echo "github.event_name: ${{ github.event_name }}"
+          echo "github.workflow: ${{ github.workflow }}"
+          echo "github.run_id: ${{ github.run_id }}"
+          echo "github.run_number: ${{ github.run_number }}"
+          echo "github.ref: ${{ github.ref }}"
+          echo "github.ref_name: ${{ github.ref_name }}"
+          echo "github.sha: ${{ github.sha }}"
+          
+          echo ""
+          echo "=== RECEIVED INPUTS ==="
+          echo "Service: '${{ inputs.service }}'"
+          echo "Tag: '${{ inputs.tag }}'"
+          echo "Environment: '${{ inputs.env }}'"
+          echo "Source branch: '${{ inputs.source_branch }}'"
+          
+          echo ""
+          echo "=== INPUT LENGTH CHECK ==="
+          echo "Service length: ${#service}"
+          echo "Tag length: ${#tag}"
+          echo "Environment length: ${#env}"
+          echo "Source branch length: ${#source_branch}"
+          
+          # Check if inputs are empty and fail if critical ones are
+          service="${{ inputs.service }}"
+          tag="${{ inputs.tag }}"
+          env="${{ inputs.env }}"
+          source_branch="${{ inputs.source_branch }}"
+          
+          if [[ -z "$service" ]]; then
+            echo "ERROR: Service input is empty!"
+            exit 1
+          fi
+          
+          if [[ -z "$tag" ]]; then
+            echo "ERROR: Tag input is empty!"
+            echo "This is the critical issue we're trying to debug!"
+            exit 1
+          fi
+          
+          if [[ -z "$env" ]]; then
+            echo "ERROR: Environment input is empty!"
+            exit 1
+          fi
+          
+          if [[ -z "$source_branch" ]]; then
+            echo "ERROR: Source branch input is empty!"
+            exit 1
+          fi
+          
+          echo ""
+          echo "=== ALL INPUTS VALIDATION PASSED ==="
       
       - name: Generate unique ID
         id: generate_id

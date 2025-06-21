@@ -1,7 +1,7 @@
 name: Backend Service CD
 
 on:
-  push:
+  push: # push policy
     branches: [ main, dev ]
     paths:
       - 'backend/**'
@@ -33,13 +33,70 @@ jobs:
       - name: Build application
         working-directory: ./backend
         run: pnpm build
-    
-  build-and-push:
+
+      - name: Run unit tests (with Jest)
+        working-directory: ./backend
+        run: pnpm test
+
+      - name: Run test coverage (with Jest)
+        working-directory: ./backend
+        run: pnpm test:cov
+
+      - name: Install jq and bc
+        run: |
+            sudo apt-get update
+            sudo apt-get install -y jq bc
+
+      - name: Display test coverage summary
+        run: cat backend/coverage/coverage-summary.json | jq .
+
+      - name: Check coverage threshold (40% lines)
+        run: |
+            COVERAGE=$(cat backend/coverage/coverage-summary.json | jq '.total.lines.pct')
+            echo "Line coverage: $COVERAGE%"
+            if (( $(echo "$COVERAGE < 40" | bc -l) )); then
+              echo "Coverage is below threshold of 40%!"
+              exit 1
+            else
+              echo "Coverage meets threshold."
+            fi
+            mv backend/coverage/lcov-report coverage_report
+
+      - name: Upload Coverage Report as Artifact
+        uses: actions/upload-artifact@v4
+        with:
+            name: coverage_report
+            path: coverage_report
+
+  deploy-test-coverage:
     needs: build
     runs-on: ubuntu-latest
+    permissions:
+        contents: write
+
+    steps:
+        - name: Checkout Repository
+          uses: actions/checkout@v4
+
+        - name: Download Coverage Report Artifact
+          uses: actions/download-artifact@v4
+          with:
+              name: coverage_report
+              path: coverage_report
+
+        - name: Deploy to GitHub Pages
+          uses: JamesIves/github-pages-deploy-action@v4
+          with:
+              branch: gh-pages
+              folder: coverage_report
+              clean: true
+    
+  push-images:
+    needs: deploy-test-coverage
+    runs-on: ubuntu-latest
     outputs:
-      tag: ${{ steps.set_output_vars.outputs.tag }}
-      env: ${{ steps.set_output_vars.outputs.env }}
+      tag: ${{ steps.determine_tag.outputs.tag }}
+      env: ${{ steps.determine_tag.outputs.env }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -56,26 +113,76 @@ jobs:
       - name: Determine image tag
         id: determine_tag
         run: |
+          echo "=== DEBUGGING BRANCH AND TAG GENERATION ==="
+          echo "GITHUB_REF: $GITHUB_REF"
+          echo "GITHUB_REF_NAME: $GITHUB_REF_NAME"
+          echo "github.ref: ${{ github.ref }}"
+          echo "github.ref_name: ${{ github.ref_name }}"
+          
           # Get short commit SHA
           SHORT_SHA=$(git rev-parse --short HEAD)
           
           # Extract branch name from GITHUB_REF
           BRANCH_NAME=${GITHUB_REF#refs/heads/}
           
+          echo "Debug: BRANCH_NAME = $BRANCH_NAME"
+          echo "Debug: SHORT_SHA = $SHORT_SHA"
+          
           # Determine the tag based on branch
           if [[ "$BRANCH_NAME" == "main" ]]; then
-            echo "tag=latest-${SHORT_SHA}" >> $GITHUB_OUTPUT
-            echo "env=staging" >> $GITHUB_OUTPUT
+            TAG="latest-${SHORT_SHA}"
+            ENV="staging"
+            echo "Branch is MAIN - setting TAG=$TAG, ENV=$ENV"
           elif [[ "$BRANCH_NAME" == "dev" ]]; then
-            echo "tag=dev-${SHORT_SHA}" >> $GITHUB_OUTPUT
-            echo "env=dev" >> $GITHUB_OUTPUT
+            TAG="dev-${SHORT_SHA}"
+            ENV="dev"
+            echo "Branch is DEV - setting TAG=$TAG, ENV=$ENV"
           else
             # For any other branch, use branch name + commit SHA
             SAFE_BRANCH_NAME=$(echo $BRANCH_NAME | sed 's/\//-/g')
-            echo "tag=${SAFE_BRANCH_NAME}-${SHORT_SHA}" >> $GITHUB_OUTPUT
-            echo "env=${SAFE_BRANCH_NAME}" >> $GITHUB_OUTPUT
+            TAG="${SAFE_BRANCH_NAME}-${SHORT_SHA}"
+            ENV="${SAFE_BRANCH_NAME}"
+            echo "Branch is OTHER ($BRANCH_NAME) - setting TAG=$TAG, ENV=$ENV"
           fi
-      
+          
+          echo "=== FINAL VALUES ==="
+          echo "Generated TAG: $TAG"
+          echo "Generated ENV: $ENV"
+          
+          # Verify values are not empty
+          if [[ -z "$TAG" ]]; then
+            echo "ERROR: TAG is empty after generation!"
+            exit 1
+          fi
+          
+          if [[ -z "$ENV" ]]; then
+            echo "ERROR: ENV is empty after generation!"
+            exit 1
+          fi
+          
+          # Set outputs directly - this will be used by the job outputs
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+          echo "env=$ENV" >> $GITHUB_OUTPUT
+          
+          echo "=== GITHUB_OUTPUT FILE CONTENTS ==="
+          cat $GITHUB_OUTPUT || echo "Could not read GITHUB_OUTPUT file"
+          
+      - name: Verify step outputs
+        run: |
+          echo "=== VERIFYING STEP OUTPUTS ==="
+          echo "determine_tag.outputs.tag: ${{ steps.determine_tag.outputs.tag }}"
+          echo "determine_tag.outputs.env: ${{ steps.determine_tag.outputs.env }}"
+          
+          if [[ -z "${{ steps.determine_tag.outputs.tag }}" ]]; then
+            echo "ERROR: determine_tag.outputs.tag is empty!"
+            exit 1
+          fi
+          
+          if [[ -z "${{ steps.determine_tag.outputs.env }}" ]]; then
+            echo "ERROR: determine_tag.outputs.env is empty!"
+            exit 1
+          fi
+          
       - name: Build and push
         uses: docker/build-push-action@v4
         with:
@@ -110,20 +217,54 @@ jobs:
             ELS_PASSWORD=${{ secrets.ELS_PASSWORD }}
             MILVUS_ADDRESS=${{ secrets.MILVUS_ADDRESS }}
             MILVUS_TOKEN=${{ secrets.MILVUS_TOKEN }}
-            
-      - name: Set output variables
-        id: set_output_vars
+
+      - name: Final job output verification
         run: |
-          echo "tag=${{ steps.determine_tag.outputs.tag }}" >> $GITHUB_OUTPUT
-          echo "env=${{ steps.determine_tag.outputs.env }}" >> $GITHUB_OUTPUT
+          echo "=== FINAL JOB OUTPUT VERIFICATION ==="
+          echo "This job will output:"
+          echo "tag: ${{ steps.determine_tag.outputs.tag }}"
+          echo "env: ${{ steps.determine_tag.outputs.env }}"
+
+  debug-outputs:
+    needs: push-images
+    runs-on: ubuntu-latest
+    steps:
+      - name: Debug job outputs before calling infrastructure update
+        run: |
+          echo "=== DEBUGGING OUTPUTS FROM PUSH-IMAGES JOB ==="
+          echo "push-images job outputs:"
+          echo "needs.push-images.outputs.tag: '${{ needs.push-images.outputs.tag }}'"
+          echo "needs.push-images.outputs.env: '${{ needs.push-images.outputs.env }}'"
+          
+          echo ""
+          echo "=== GITHUB CONTEXT ==="
+          echo "github.ref_name: '${{ github.ref_name }}'"
+          echo "Current branch: '${{ github.ref_name }}'"
+          
+          # Validate that we have the outputs we expect
+          if [[ -z "${{ needs.push-images.outputs.tag }}" ]]; then
+            echo "ERROR: needs.push-images.outputs.tag is empty!"
+            echo "This means the push-images job did not set the tag output correctly"
+            exit 1
+          else
+            echo "SUCCESS: Tag output is available: '${{ needs.push-images.outputs.tag }}'"
+          fi
+          
+          if [[ -z "${{ needs.push-images.outputs.env }}" ]]; then
+            echo "ERROR: needs.push-images.outputs.env is empty!"
+            echo "This means the push-images job did not set the env output correctly"
+            exit 1
+          else
+            echo "SUCCESS: Env output is available: '${{ needs.push-images.outputs.env }}'"
+          fi
 
   update-infrastructure:
-    needs: build-and-push
+    needs: [push-images, debug-outputs]
     uses: ./.github/workflows/infrastructure-update.yml
     with:
       service: backend
-      tag: ${{ needs.build-and-push.outputs.tag }}
-      env: ${{ needs.build-and-push.outputs.env }}
+      tag: ${{ needs.push-images.outputs.tag }}
+      env: ${{ needs.push-images.outputs.env }}
       source_branch: ${{ github.ref_name }}
     secrets:
       ARGOCD_GITHUB_TOKEN: ${{ secrets.ARGOCD_GITHUB_TOKEN }}

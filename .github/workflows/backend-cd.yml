@@ -170,7 +170,7 @@ jobs:
         run: |
           echo "tag=${{ steps.determine_tag.outputs.tag }}" >> $GITHUB_OUTPUT
           echo "env=${{ steps.determine_tag.outputs.env }}" >> $GITHUB_OUTPUT
-          
+
     outputs:
       tag: ${{ steps.set_output_vars.outputs.tag }}
       env: ${{ steps.set_output_vars.outputs.env }}
@@ -185,7 +185,3 @@ jobs:
       source_branch: ${{ github.ref_name }}
     secrets:
       ARGOCD_GITHUB_TOKEN: ${{ secrets.ARGOCD_GITHUB_TOKEN }}
-    steps:
-      - name: Checkout code
-        run: |
-          echo "${{ needs.push-images.outputs }}"

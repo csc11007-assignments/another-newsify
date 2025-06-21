@@ -143,7 +143,7 @@ jobs:
           echo "tag=$TAG" >> $GITHUB_OUTPUT
           echo "env=$ENV" >> $GITHUB_OUTPUT
 
-          echo $GITHUB_OUTPUT
+          cat $GITHUB_OUTPUT
       
       - name: Build and push
         uses: docker/build-push-action@v4
@@ -185,8 +185,8 @@ jobs:
     uses: ./.github/workflows/infrastructure-update.yml
     with:
       service: backend
-      tag: ${{ needs.push-images.outputs.tag }}
-      env: ${{ needs.push-images.outputs.env }}
+      tag: ${{ steps.determine_tag.outputs.tag }}
+      env: ${{ steps.determine_tag.outputs.env }}
       source_branch: ${{ github.ref_name }}
     secrets:
       ARGOCD_GITHUB_TOKEN: ${{ secrets.ARGOCD_GITHUB_TOKEN }}

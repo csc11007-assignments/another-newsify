@@ -204,34 +204,64 @@ jobs:
         run: |
           echo "=== SETTING JOB OUTPUTS EXPLICITLY ==="
           
-          # Get the values from determine_tag step
-          SOURCE_TAG="${{ steps.determine_tag.outputs.tag }}"
-          SOURCE_ENV="${{ steps.determine_tag.outputs.env }}"
+          # Regenerate the values independently to avoid any step dependency issues
+          SHORT_SHA=$(git rev-parse --short HEAD)
+          BRANCH_NAME=${GITHUB_REF#refs/heads/}
           
-          echo "Source TAG from determine_tag: '$SOURCE_TAG'"
-          echo "Source ENV from determine_tag: '$SOURCE_ENV'"
+          echo "Regenerating values:"
+          echo "BRANCH_NAME: $BRANCH_NAME"
+          echo "SHORT_SHA: $SHORT_SHA"
           
-          # Verify we got the values
-          if [[ -z "$SOURCE_TAG" ]]; then
-            echo "ERROR: Could not get tag from determine_tag step!"
+          # Determine the tag based on branch
+          if [[ "$BRANCH_NAME" == "main" ]]; then
+            TAG="latest-${SHORT_SHA}"
+            ENV="staging"
+          elif [[ "$BRANCH_NAME" == "dev" ]]; then
+            TAG="dev-${SHORT_SHA}"
+            ENV="dev"
+          else
+            SAFE_BRANCH_NAME=$(echo $BRANCH_NAME | sed 's/\//-/g')
+            TAG="${SAFE_BRANCH_NAME}-${SHORT_SHA}"
+            ENV="${SAFE_BRANCH_NAME}"
+          fi
+          
+          # Clean the tag to ensure no special characters
+          TAG=$(echo "$TAG" | tr -cd '[:alnum:]-._')
+          ENV=$(echo "$ENV" | tr -cd '[:alnum:]-._')
+          
+          echo "Regenerated TAG: '$TAG'"
+          echo "Regenerated ENV: '$ENV'"
+          
+          # Verify values are not empty
+          if [[ -z "$TAG" ]]; then
+            echo "ERROR: Regenerated TAG is empty!"
             exit 1
           fi
           
-          if [[ -z "$SOURCE_ENV" ]]; then
-            echo "ERROR: Could not get env from determine_tag step!"
+          if [[ -z "$ENV" ]]; then
+            echo "ERROR: Regenerated ENV is empty!"
             exit 1
           fi
+          
+          echo "=== CLEARING AND SETTING FRESH GITHUB_OUTPUT ==="
+          # Clear the GITHUB_OUTPUT file to avoid conflicts
+          > $GITHUB_OUTPUT
           
           # Set clean outputs for the job
-          printf "tag=%s\n" "$SOURCE_TAG" >> $GITHUB_OUTPUT
-          printf "env=%s\n" "$SOURCE_ENV" >> $GITHUB_OUTPUT
+          printf "tag=%s\n" "$TAG" >> $GITHUB_OUTPUT
+          printf "env=%s\n" "$ENV" >> $GITHUB_OUTPUT
           
           echo "=== JOB OUTPUTS SET ==="
-          echo "tag=$SOURCE_TAG"
-          echo "env=$SOURCE_ENV"
+          echo "tag=$TAG"
+          echo "env=$ENV"
           
           echo "=== CURRENT GITHUB_OUTPUT CONTENTS ==="
           cat $GITHUB_OUTPUT
+          
+          echo "=== VERIFYING STEP OUTPUTS ARE READABLE ==="
+          echo "Reading back from this step:"
+          echo "set_job_outputs.outputs.tag would be: $TAG"
+          echo "set_job_outputs.outputs.env would be: $ENV"
 
       - name: Build and push
         uses: docker/build-push-action@v4

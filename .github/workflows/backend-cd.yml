@@ -48,9 +48,11 @@ jobs:
             sudo apt-get install -y jq bc
 
       - name: Display test coverage summary
+        working-directory: ./backend
         run: cat coverage/coverage-summary.json | jq .
 
       - name: Check coverage threshold (70% lines)
+        working-directory: ./backend
         run: |
             COVERAGE=$(cat coverage/coverage-summary.json | jq '.total.lines.pct')
             echo "Line coverage: $COVERAGE%"
@@ -63,6 +65,7 @@ jobs:
             mv coverage/lcov-report coverage_report
 
       - name: Upload Coverage Report as Artifact
+        working-directory: ./backend
         uses: actions/upload-artifact@v4
         with:
             name: coverage_report

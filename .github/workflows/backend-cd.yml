@@ -71,30 +71,30 @@ jobs:
                   path: coverage_report
 
   deploy-test-coverage:
-      needs: build
-      runs-on: ubuntu-latest
-      permissions:
-          contents: write
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+        contents: write
 
-      steps:
-          - name: Checkout Repository
-            uses: actions/checkout@v4
+    steps:
+        - name: Checkout Repository
+          uses: actions/checkout@v4
 
-          - name: Download Coverage Report Artifact
-            uses: actions/download-artifact@v4
-            with:
-                name: coverage_report
-                path: coverage_report
+        - name: Download Coverage Report Artifact
+          uses: actions/download-artifact@v4
+          with:
+              name: coverage_report
+              path: coverage_report
 
-          - name: Deploy to GitHub Pages
-            uses: JamesIves/github-pages-deploy-action@v4
-            with:
-                branch: gh-pages
-                folder: coverage_report
-                clean: true
+        - name: Deploy to GitHub Pages
+          uses: JamesIves/github-pages-deploy-action@v4
+          with:
+              branch: gh-pages
+              folder: coverage_report
+              clean: true
     
   push-images:
-    needs: test
+    needs: deploy-test-coverage
     runs-on: ubuntu-latest
     outputs:
       tag: ${{ steps.set_output_vars.outputs.tag }}

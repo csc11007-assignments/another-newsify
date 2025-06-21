@@ -39,7 +39,7 @@ services:
   frontend:
     containerName: newsify-frontend
     image: nkwn/newsify-frontend
-    tag: dev-9bee49a
+    tag: dev-4b21ffe
     port: 3000
     ingress:
       enabled: true

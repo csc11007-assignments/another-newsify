@@ -142,8 +142,6 @@ jobs:
           # Set outputs directly - this will be used by the job outputs
           echo "tag=$TAG" >> $GITHUB_OUTPUT
           echo "env=$ENV" >> $GITHUB_OUTPUT
-
-          cat $GITHUB_OUTPUT
       
       - name: Build and push
         uses: docker/build-push-action@v4

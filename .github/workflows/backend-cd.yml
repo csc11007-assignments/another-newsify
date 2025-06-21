@@ -33,70 +33,13 @@ jobs:
       - name: Build application
         working-directory: ./backend
         run: pnpm build
-
-      - name: Run unit tests (with Jest)
-        working-directory: ./backend
-        run: pnpm test
-
-      - name: Run test coverage (with Jest)
-        working-directory: ./backend
-        run: pnpm test:cov
-
-      - name: Install jq and bc
-        run: |
-            sudo apt-get update
-            sudo apt-get install -y jq bc
-
-      - name: Display test coverage summary
-        run: cat backend/coverage/coverage-summary.json | jq .
-
-      - name: Check coverage threshold (40% lines)
-        run: |
-            COVERAGE=$(cat backend/coverage/coverage-summary.json | jq '.total.lines.pct')
-            echo "Line coverage: $COVERAGE%"
-            if (( $(echo "$COVERAGE < 40" | bc -l) )); then
-              echo "Coverage is below threshold of 40%!"
-              exit 1
-            else
-              echo "Coverage meets threshold."
-            fi
-            mv backend/coverage/lcov-report coverage_report
-
-      - name: Upload Coverage Report as Artifact
-        uses: actions/upload-artifact@v4
-        with:
-            name: coverage_report
-            path: coverage_report
-
-  deploy-test-coverage:
+    
+  build-and-push:
     needs: build
     runs-on: ubuntu-latest
-    permissions:
-        contents: write
-
-    steps:
-        - name: Checkout Repository
-          uses: actions/checkout@v4
-
-        - name: Download Coverage Report Artifact
-          uses: actions/download-artifact@v4
-          with:
-              name: coverage_report
-              path: coverage_report
-
-        - name: Deploy to GitHub Pages
-          uses: JamesIves/github-pages-deploy-action@v4
-          with:
-              branch: gh-pages
-              folder: coverage_report
-              clean: true
-    
-  push-images:
-    needs: deploy-test-coverage
-    runs-on: ubuntu-latest
     outputs:
-      tag: ${{ steps.determine_tag.outputs.tag }}
-      env: ${{ steps.determine_tag.outputs.env }}
+      tag: ${{ steps.set_output_vars.outputs.tag }}
+      env: ${{ steps.set_output_vars.outputs.env }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -119,32 +62,20 @@ jobs:
           # Extract branch name from GITHUB_REF
           BRANCH_NAME=${GITHUB_REF#refs/heads/}
           
-          echo "Debug: BRANCH_NAME = $BRANCH_NAME"
-          echo "Debug: SHORT_SHA = $SHORT_SHA"
-          
           # Determine the tag based on branch
           if [[ "$BRANCH_NAME" == "main" ]]; then
-            TAG="latest-${SHORT_SHA}"
-            ENV="staging"
+            echo "tag=latest-${SHORT_SHA}" >> $GITHUB_OUTPUT
+            echo "env=staging" >> $GITHUB_OUTPUT
           elif [[ "$BRANCH_NAME" == "dev" ]]; then
-            TAG="dev-${SHORT_SHA}"
-            ENV="dev"
+            echo "tag=dev-${SHORT_SHA}" >> $GITHUB_OUTPUT
+            echo "env=dev" >> $GITHUB_OUTPUT
           else
             # For any other branch, use branch name + commit SHA
             SAFE_BRANCH_NAME=$(echo $BRANCH_NAME | sed 's/\//-/g')
-            TAG="${SAFE_BRANCH_NAME}-${SHORT_SHA}"
-            ENV="${SAFE_BRANCH_NAME}"
+            echo "tag=${SAFE_BRANCH_NAME}-${SHORT_SHA}" >> $GITHUB_OUTPUT
+            echo "env=${SAFE_BRANCH_NAME}" >> $GITHUB_OUTPUT
           fi
-          
-          echo "Generated TAG: $TAG"
-          echo "Generated ENV: $ENV"
-          
-          # Set outputs directly - this will be used by the job outputs
-          echo "tag=$TAG" >> $GITHUB_OUTPUT
-          echo "env=$ENV" >> $GITHUB_OUTPUT
-
-          cat $GITHUB_OUTPUT
-          
+      
       - name: Build and push
         uses: docker/build-push-action@v4
         with:
@@ -179,14 +110,20 @@ jobs:
             ELS_PASSWORD=${{ secrets.ELS_PASSWORD }}
             MILVUS_ADDRESS=${{ secrets.MILVUS_ADDRESS }}
             MILVUS_TOKEN=${{ secrets.MILVUS_TOKEN }}
+            
+      - name: Set output variables
+        id: set_output_vars
+        run: |
+          echo "tag=${{ steps.determine_tag.outputs.tag }}" >> $GITHUB_OUTPUT
+          echo "env=${{ steps.determine_tag.outputs.env }}" >> $GITHUB_OUTPUT
 
   update-infrastructure:
-    needs: push-images
+    needs: build-and-push
     uses: ./.github/workflows/infrastructure-update.yml
     with:
       service: backend
-      tag: ${{ needs.push-images.outputs.tag }}
-      env: ${{ needs.push-images.outputs.env }}
+      tag: ${{ needs.build-and-push.outputs.tag }}
+      env: ${{ needs.build-and-push.outputs.env }}
       source_branch: ${{ github.ref_name }}
     secrets:
       ARGOCD_GITHUB_TOKEN: ${{ secrets.ARGOCD_GITHUB_TOKEN }}

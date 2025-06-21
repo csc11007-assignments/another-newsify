@@ -5,6 +5,7 @@ import { ApiOperation, ApiBearerAuth, ApiResponse } from '@nestjs/swagger';
 import { ATAuthGuard } from '../auth/guards/at-auth.guard';
 import { ProfileDto } from '../auth/dtos/cred.dto';
 
+// add comments for the code
 @Controller('users')
 export class UsersController {
     constructor(private readonly usersService: UsersService) {}

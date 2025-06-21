@@ -1,0 +1,64 @@
+name: Send Deployment Notifications
+
+on:
+  workflow_call:
+    inputs:
+      service_name:
+        required: true
+        type: string
+        description: 'Name of the service (e.g., backend, frontend, trending-service)'
+      status:
+        required: true
+        type: string
+        description: 'Deployment status (success or failure)'
+      tag:
+        required: false
+        type: string
+        description: 'Image tag deployed'
+      environment:
+        required: false
+        type: string
+        description: 'Environment deployed to'
+      notification_type:
+        required: false
+        type: string
+        default: 'slack'
+        description: 'Type of notification (slack, discord, email, teams)'
+    secrets:
+      EMAIL_USERNAME:
+        required: true
+      EMAIL_PASSWORD:
+        required: true
+      NOTIFICATION_EMAILS:
+        required: true
+      EMAIL_FROM:
+        required: true
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Notify via Email
+        if: inputs.notification_type == 'email'
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 587
+          username: ${{ secrets.EMAIL_USERNAME }}
+          password: ${{ secrets.EMAIL_PASSWORD }}
+          subject: ${{ inputs.status == 'success' && format('✅ {0} Pipeline Success - {1}', inputs.service_name, github.repository) || format('❌ {0} Pipeline Failed - {1}', inputs.service_name, github.repository) }}
+          to: ${{ secrets.NOTIFICATION_EMAILS }}
+          from: ${{ secrets.EMAIL_FROM }}
+          body: |
+            Hello Team,
+            
+            The ${{ inputs.service_name }} pipeline has ${{ inputs.status == 'success' && 'completed successfully!' || 'failed!' }}
+            
+            Details:
+            - Service: ${{ inputs.service_name }}
+            - Repository: ${{ github.repository }}
+            - Branch: ${{ github.ref_name }}
+            - Commit: ${{ github.sha }}
+            ${{ inputs.tag && format('- Tag: {0}', inputs.tag) || '' }}
+            ${{ inputs.environment && format('- Environment: {0}', inputs.environment) || '' }}
+            - Workflow Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}

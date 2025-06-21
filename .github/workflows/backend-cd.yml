@@ -190,3 +190,33 @@ jobs:
       source_branch: ${{ github.ref_name }}
     secrets:
       ARGOCD_GITHUB_TOKEN: ${{ secrets.ARGOCD_GITHUB_TOKEN }}
+
+  notify-success:
+    needs: [push-images, update-infrastructure]
+    uses: ./.github/workflows/notification.yml
+    if: success()
+    with:
+      service_name: 'Backend'
+      status: 'success'
+      tag: ${{ needs.push-images.outputs.tag }}
+      environment: ${{ needs.push-images.outputs.env }}
+      notification_type: 'email'
+    secrets:
+      EMAIL_USERNAME: ${{ secrets.EMAIL_USERNAME }}
+      EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
+      NOTIFICATION_EMAILS: ${{ secrets.NOTIFICATION_EMAILS }}
+      EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
+
+  notify-failure:
+    needs: [build, deploy-test-coverage, push-images, update-infrastructure]
+    uses: ./.github/workflows/notification.yml
+    if: failure()
+    with:
+      service_name: 'Backend'
+      status: 'failure'
+      notification_type: 'email'
+    secrets:
+      EMAIL_USERNAME: ${{ secrets.EMAIL_USERNAME }}
+      EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
+      NOTIFICATION_EMAILS: ${{ secrets.NOTIFICATION_EMAILS }}
+      EMAIL_FROM: ${{ secrets.EMAIL_FROM }}

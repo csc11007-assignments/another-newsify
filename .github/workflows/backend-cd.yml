@@ -179,8 +179,8 @@ jobs:
     uses: ./.github/workflows/infrastructure-update.yml
     with:
       service: backend
-      tag: ${{ needs.build-and-push.outputs.tag }}
-      env: ${{ needs.build-and-push.outputs.env }}
+      tag: ${{ needs.push-images.outputs.tag }}
+      env: ${{ needs.push-images.outputs.env }}
       source_branch: ${{ github.ref_name }}
     secrets:
       ARGOCD_GITHUB_TOKEN: ${{ secrets.ARGOCD_GITHUB_TOKEN }}

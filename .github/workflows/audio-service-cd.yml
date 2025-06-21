@@ -57,6 +57,11 @@ jobs:
           DO_SPACES_SECRET_KEY: ${{ secrets.DO_SPACES_SECRET_KEY }}
           DO_SPACES_BUCKET: ${{ secrets.DO_SPACES_BUCKET }}
           DO_SPACES_ENDPOINT: ${{ secrets.DO_SPACES_ENDPOINT }}
+          GOOGLE_GEMINI_API_KEY: ${{ secrets.GOOGLE_GEMINI_API_KEY }}
+          GOOGLE_GEMINI_MODEL: ${{ secrets.GOOGLE_GEMINI_MODEL }}
+          ENV: ${{ secrets.ENV }}
+
+
         run: |
           python -m pytest 
 
@@ -82,6 +87,9 @@ jobs:
           DO_SPACES_SECRET_KEY: ${{ secrets.DO_SPACES_SECRET_KEY }}
           DO_SPACES_BUCKET: ${{ secrets.DO_SPACES_BUCKET }}
           DO_SPACES_ENDPOINT: ${{ secrets.DO_SPACES_ENDPOINT }}
+          GOOGLE_GEMINI_API_KEY: ${{ secrets.GOOGLE_GEMINI_API_KEY }}
+          GOOGLE_GEMINI_MODEL: ${{ secrets.GOOGLE_GEMINI_MODEL }}
+
         run: |
           python -m pytest --cov=app --cov-report=term-missing --cov-report=json --cov-report=html
 

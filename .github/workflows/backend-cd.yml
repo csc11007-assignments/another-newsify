@@ -94,9 +94,6 @@ jobs:
   push-images:
     needs: deploy-test-coverage
     runs-on: ubuntu-latest
-    outputs:
-      tag: ${{ steps.set_output_vars.outputs.tag }}
-      env: ${{ steps.set_output_vars.outputs.env }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -173,6 +170,10 @@ jobs:
         run: |
           echo "tag=${{ steps.determine_tag.outputs.tag }}" >> $GITHUB_OUTPUT
           echo "env=${{ steps.determine_tag.outputs.env }}" >> $GITHUB_OUTPUT
+          
+    outputs:
+      tag: ${{ steps.set_output_vars.outputs.tag }}
+      env: ${{ steps.set_output_vars.outputs.env }}
 
   update-infrastructure:
     needs: push-images

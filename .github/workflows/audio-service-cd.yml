@@ -59,8 +59,11 @@ jobs:
           DO_SPACES_ENDPOINT: ${{ secrets.DO_SPACES_ENDPOINT }}
           GOOGLE_GEMINI_API_KEY: ${{ secrets.GOOGLE_GEMINI_API_KEY }}
           GOOGLE_GEMINI_MODEL: ${{ secrets.GOOGLE_GEMINI_MODEL }}
-          ENV: ${{ secrets.ENV }}
-
+          REDIS_HOST: ${{ secrets.REDIS_HOST }}
+          REDIS_PORT: ${{ secrets.REDIS_PORT }}
+          REDIS_USERNAME: ${{ secrets.REDIS_USERNAME }}
+          REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
+          REDIS_CHANNEL: ${{ secrets.REDIS_CHANNEL }}
 
         run: |
           python -m pytest 
@@ -89,6 +92,11 @@ jobs:
           DO_SPACES_ENDPOINT: ${{ secrets.DO_SPACES_ENDPOINT }}
           GOOGLE_GEMINI_API_KEY: ${{ secrets.GOOGLE_GEMINI_API_KEY }}
           GOOGLE_GEMINI_MODEL: ${{ secrets.GOOGLE_GEMINI_MODEL }}
+          REDIS_HOST: ${{ secrets.REDIS_HOST }}
+          REDIS_PORT: ${{ secrets.REDIS_PORT }}
+          REDIS_USERNAME: ${{ secrets.REDIS_USERNAME }}
+          REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
+          REDIS_CHANNEL: ${{ secrets.REDIS_CHANNEL }}
 
         run: |
           python -m pytest --cov=app --cov-report=term-missing --cov-report=json --cov-report=html
@@ -228,3 +236,33 @@ jobs:
       source_branch: ${{ github.ref_name }}
     secrets:
       ARGOCD_GITHUB_TOKEN: ${{ secrets.ARGOCD_GITHUB_TOKEN }}
+
+  notify-success:
+    needs: [build-and-push, update-infrastructure]
+    uses: ./.github/workflows/notification.yml
+    if: success()
+    with:
+      service_name: 'Audio Service'
+      status: 'success'
+      tag: ${{ needs.build-and-push.outputs.tag }}
+      environment: ${{ needs.build-and-push.outputs.env }}
+      notification_type: 'email'
+    secrets:
+      EMAIL_USERNAME: ${{ secrets.EMAIL_USERNAME }}
+      EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
+      NOTIFICATION_EMAILS: ${{ secrets.NOTIFICATION_EMAILS }}
+      EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
+
+  notify-failure:
+    needs: [build, build-and-push, update-infrastructure]
+    uses: ./.github/workflows/notification.yml
+    if: failure()
+    with:
+      service_name: 'Audio Service'
+      status: 'failure'
+      notification_type: 'email'
+    secrets:
+      EMAIL_USERNAME: ${{ secrets.EMAIL_USERNAME }}
+      EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
+      NOTIFICATION_EMAILS: ${{ secrets.NOTIFICATION_EMAILS }}
+      EMAIL_FROM: ${{ secrets.EMAIL_FROM }}

@@ -29,22 +29,6 @@ jobs:
                 
       - name: Test uvicorn server launch
         working-directory: ./services/audio-service
-        env:
-          DB_NAME: ${{ secrets.DB_NAME }}
-          DB_PORT: ${{ secrets.DB_PORT }}
-          DATABASE: ${{ secrets.DATABASE }}
-          DB_USERNAME: ${{ secrets.DB_USERNAME }}
-          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-          DB_DIALECT: ${{ secrets.DB_DIALECT }}
-          DO_DB_NAME: ${{ secrets.DO_DB_NAME }}
-          DO_DB_PORT: ${{ secrets.DO_DB_PORT }}
-          DO_DB_HOST: ${{ secrets.DO_DB_HOST }}
-          DO_DB_USERNAME: ${{ secrets.DO_DB_USERNAME }}
-          DO_DB_PASSWORD: ${{ secrets.DO_DB_PASSWORD }}
-          DO_SPACES_ACCESS_KEY: ${{ secrets.DO_SPACES_ACCESS_KEY }}
-          DO_SPACES_SECRET_KEY: ${{ secrets.DO_SPACES_SECRET_KEY }}
-          DO_SPACES_BUCKET: ${{ secrets.DO_SPACES_BUCKET }}
-          DO_SPACES_ENDPOINT: ${{ secrets.DO_SPACES_ENDPOINT }}
         run: |
           uvicorn app.main:app --host 0.0.0.0 --port 8000 &
           sleep 5
@@ -54,6 +38,10 @@ jobs:
       - name: Run unit tests (with pytest)
         working-directory: ./services/audio-service
         env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_ENDPOINT: ${{ secrets.OPENAI_ENDPOINT }}
+          OPENAI_TTS_MODEL: ${{ secrets.OPENAI_TTS_MODEL }}
+          OPENAI_TRANSCRIPTION_MODEL: ${{ secrets.OPENAI_TRANSCRIPTION_MODEL }}
           DB_NAME: ${{ secrets.DB_NAME }}
           DB_PORT: ${{ secrets.DB_PORT }}
           DATABASE: ${{ secrets.DATABASE }}
@@ -78,6 +66,10 @@ jobs:
           DB_NAME: ${{ secrets.DB_NAME }}
           DB_PORT: ${{ secrets.DB_PORT }}
           DATABASE: ${{ secrets.DATABASE }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_ENDPOINT: ${{ secrets.OPENAI_ENDPOINT }}
+          OPENAI_TTS_MODEL: ${{ secrets.OPENAI_TTS_MODEL }}
+          OPENAI_TRANSCRIPTION_MODEL: ${{ secrets.OPENAI_TRANSCRIPTION_MODEL }}
           DB_USERNAME: ${{ secrets.DB_USERNAME }}
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
           DB_DIALECT: ${{ secrets.DB_DIALECT }}

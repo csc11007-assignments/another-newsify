@@ -95,8 +95,8 @@ jobs:
     needs: deploy-test-coverage
     runs-on: ubuntu-latest
     outputs:
-      tag: ${{ steps.determine_tag.outputs.tag }}
-      env: ${{ steps.determine_tag.outputs.env }}
+      tag: ${{ steps.set_job_outputs.outputs.tag }}
+      env: ${{ steps.set_job_outputs.outputs.env }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -128,7 +128,7 @@ jobs:
           echo "Debug: BRANCH_NAME = $BRANCH_NAME"
           echo "Debug: SHORT_SHA = $SHORT_SHA"
           
-          # Determine the tag based on branch
+          # Determine the tag based on branch - use cleaner approach
           if [[ "$BRANCH_NAME" == "main" ]]; then
             TAG="latest-${SHORT_SHA}"
             ENV="staging"
@@ -145,9 +145,22 @@ jobs:
             echo "Branch is OTHER ($BRANCH_NAME) - setting TAG=$TAG, ENV=$ENV"
           fi
           
-          echo "=== FINAL VALUES ==="
+          # Clean the tag to ensure no special characters
+          TAG=$(echo "$TAG" | tr -cd '[:alnum:]-._')
+          ENV=$(echo "$ENV" | tr -cd '[:alnum:]-._')
+          
+          echo "=== FINAL VALUES (after cleaning) ==="
           echo "Generated TAG: $TAG"
           echo "Generated ENV: $ENV"
+          echo "TAG length: ${#TAG}"
+          echo "ENV length: ${#ENV}"
+          
+          # Show character by character what's in TAG
+          echo "TAG character by character:"
+          for (( i=0; i<${#TAG}; i++ )); do
+            char="${TAG:$i:1}"
+            printf "Position %d: '%s' (ASCII: %d)\n" $i "$char" "'$char"
+          done
           
           # Verify values are not empty
           if [[ -z "$TAG" ]]; then
@@ -160,13 +173,16 @@ jobs:
             exit 1
           fi
           
-          # Set outputs directly - this will be used by the job outputs
-          echo "tag=$TAG" >> $GITHUB_OUTPUT
-          echo "env=$ENV" >> $GITHUB_OUTPUT
+          # Set outputs directly - use printf to ensure clean output
+          printf "tag=%s\n" "$TAG" >> $GITHUB_OUTPUT
+          printf "env=%s\n" "$ENV" >> $GITHUB_OUTPUT
           
           echo "=== GITHUB_OUTPUT FILE CONTENTS ==="
           cat $GITHUB_OUTPUT || echo "Could not read GITHUB_OUTPUT file"
           
+          echo "=== GITHUB_OUTPUT FILE HEX DUMP ==="
+          hexdump -C $GITHUB_OUTPUT | head -20
+
       - name: Verify step outputs
         run: |
           echo "=== VERIFYING STEP OUTPUTS ==="
@@ -183,6 +199,40 @@ jobs:
             exit 1
           fi
           
+      - name: Set job outputs explicitly
+        id: set_job_outputs
+        run: |
+          echo "=== SETTING JOB OUTPUTS EXPLICITLY ==="
+          
+          # Get the values from determine_tag step
+          SOURCE_TAG="${{ steps.determine_tag.outputs.tag }}"
+          SOURCE_ENV="${{ steps.determine_tag.outputs.env }}"
+          
+          echo "Source TAG from determine_tag: '$SOURCE_TAG'"
+          echo "Source ENV from determine_tag: '$SOURCE_ENV'"
+          
+          # Verify we got the values
+          if [[ -z "$SOURCE_TAG" ]]; then
+            echo "ERROR: Could not get tag from determine_tag step!"
+            exit 1
+          fi
+          
+          if [[ -z "$SOURCE_ENV" ]]; then
+            echo "ERROR: Could not get env from determine_tag step!"
+            exit 1
+          fi
+          
+          # Set clean outputs for the job
+          printf "tag=%s\n" "$SOURCE_TAG" >> $GITHUB_OUTPUT
+          printf "env=%s\n" "$SOURCE_ENV" >> $GITHUB_OUTPUT
+          
+          echo "=== JOB OUTPUTS SET ==="
+          echo "tag=$SOURCE_TAG"
+          echo "env=$SOURCE_ENV"
+          
+          echo "=== CURRENT GITHUB_OUTPUT CONTENTS ==="
+          cat $GITHUB_OUTPUT
+
       - name: Build and push
         uses: docker/build-push-action@v4
         with:
@@ -224,6 +274,8 @@ jobs:
           echo "This job will output:"
           echo "tag: ${{ steps.determine_tag.outputs.tag }}"
           echo "env: ${{ steps.determine_tag.outputs.env }}"
+          echo "job outputs tag: ${{ steps.set_job_outputs.outputs.tag }}"
+          echo "job outputs env: ${{ steps.set_job_outputs.outputs.env }}"
 
   debug-outputs:
     needs: push-images
@@ -235,6 +287,18 @@ jobs:
           echo "push-images job outputs:"
           echo "needs.push-images.outputs.tag: '${{ needs.push-images.outputs.tag }}'"
           echo "needs.push-images.outputs.env: '${{ needs.push-images.outputs.env }}'"
+          
+          echo ""
+          echo "=== HEX DUMP OF TAG VALUE ==="
+          TAG_VALUE="${{ needs.push-images.outputs.tag }}"
+          echo "Tag value: '$TAG_VALUE'"
+          echo "Tag length: ${#TAG_VALUE}"
+          if [[ -n "$TAG_VALUE" ]]; then
+            echo "Tag hex dump:"
+            echo -n "$TAG_VALUE" | hexdump -C
+          else
+            echo "Tag is empty or null"
+          fi
           
           echo ""
           echo "=== GITHUB CONTEXT ==="

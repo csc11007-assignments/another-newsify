@@ -37,5 +37,5 @@ services:
         nginx.ingress.kubernetes.io/rewrite-target: /$2
         nginx.ingress.kubernetes.io/use-regex: "true"
   frontend:
-    tag: latest-f380690
+    tag: latest-445ee22
 replicaCount: 1

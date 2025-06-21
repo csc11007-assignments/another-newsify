@@ -95,8 +95,8 @@ jobs:
     needs: deploy-test-coverage
     runs-on: ubuntu-latest
     outputs:
-      tag: ${{ steps.set_job_outputs.outputs.tag }}
-      env: ${{ steps.set_job_outputs.outputs.env }}
+      tag: ${{ steps.set_job_outputs_simple.outputs.tag }}
+      env: ${{ steps.set_job_outputs_simple.outputs.env }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -199,20 +199,15 @@ jobs:
             exit 1
           fi
           
-      - name: Set job outputs explicitly
-        id: set_job_outputs
+      - name: Set job outputs SIMPLE (no cleaning)
+        id: set_job_outputs_simple
         run: |
-          echo "=== SETTING JOB OUTPUTS EXPLICITLY ==="
+          echo "=== SETTING JOB OUTPUTS SIMPLE - NO CHARACTER CLEANING ==="
           
-          # Regenerate the values independently to avoid any step dependency issues
+          # Generate values without any cleaning
           SHORT_SHA=$(git rev-parse --short HEAD)
           BRANCH_NAME=${GITHUB_REF#refs/heads/}
           
-          echo "Regenerating values:"
-          echo "BRANCH_NAME: $BRANCH_NAME"
-          echo "SHORT_SHA: $SHORT_SHA"
-          
-          # Determine the tag based on branch
           if [[ "$BRANCH_NAME" == "main" ]]; then
             TAG="latest-${SHORT_SHA}"
             ENV="staging"
@@ -225,43 +220,22 @@ jobs:
             ENV="${SAFE_BRANCH_NAME}"
           fi
           
-          # Clean the tag to ensure no special characters
-          TAG=$(echo "$TAG" | tr -cd '[:alnum:]-._')
-          ENV=$(echo "$ENV" | tr -cd '[:alnum:]-._')
+          echo "Simple TAG: '$TAG'"
+          echo "Simple ENV: '$ENV'"
           
-          echo "Regenerated TAG: '$TAG'"
-          echo "Regenerated ENV: '$ENV'"
-          
-          # Verify values are not empty
-          if [[ -z "$TAG" ]]; then
-            echo "ERROR: Regenerated TAG is empty!"
-            exit 1
-          fi
-          
-          if [[ -z "$ENV" ]]; then
-            echo "ERROR: Regenerated ENV is empty!"
-            exit 1
-          fi
-          
-          echo "=== CLEARING AND SETTING FRESH GITHUB_OUTPUT ==="
-          # Clear the GITHUB_OUTPUT file to avoid conflicts
+          # Clear and set outputs without any character manipulation
           > $GITHUB_OUTPUT
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+          echo "env=$ENV" >> $GITHUB_OUTPUT
           
-          # Set clean outputs for the job
-          printf "tag=%s\n" "$TAG" >> $GITHUB_OUTPUT
-          printf "env=%s\n" "$ENV" >> $GITHUB_OUTPUT
-          
-          echo "=== JOB OUTPUTS SET ==="
-          echo "tag=$TAG"
-          echo "env=$ENV"
-          
-          echo "=== CURRENT GITHUB_OUTPUT CONTENTS ==="
+          echo "=== SIMPLE GITHUB_OUTPUT CONTENTS ==="
           cat $GITHUB_OUTPUT
-          
-          echo "=== VERIFYING STEP OUTPUTS ARE READABLE ==="
-          echo "Reading back from this step:"
-          echo "set_job_outputs.outputs.tag would be: $TAG"
-          echo "set_job_outputs.outputs.env would be: $ENV"
+
+      - name: Test reading simple outputs
+        run: |
+          echo "=== TESTING SIMPLE STEP OUTPUTS ==="
+          echo "Simple tag: '${{ steps.set_job_outputs_simple.outputs.tag }}'"
+          echo "Simple env: '${{ steps.set_job_outputs_simple.outputs.env }}'"
 
       - name: Build and push
         uses: docker/build-push-action@v4
@@ -304,8 +278,8 @@ jobs:
           echo "This job will output:"
           echo "tag: ${{ steps.determine_tag.outputs.tag }}"
           echo "env: ${{ steps.determine_tag.outputs.env }}"
-          echo "job outputs tag: ${{ steps.set_job_outputs.outputs.tag }}"
-          echo "job outputs env: ${{ steps.set_job_outputs.outputs.env }}"
+          echo "simple outputs tag: ${{ steps.set_job_outputs_simple.outputs.tag }}"
+          echo "simple outputs env: ${{ steps.set_job_outputs_simple.outputs.env }}"
 
   debug-outputs:
     needs: push-images

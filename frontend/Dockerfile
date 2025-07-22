@@ -5,6 +5,9 @@ WORKDIR /app
 COPY package.json pnpm-lock.yaml ./
 RUN npm install -g pnpm && pnpm install
 
+ARG NEXT_PUBLIC_API_BASE_URL
+ENV NEXT_PUBLIC_API_BASE_URL=$NEXT_PUBLIC_API_BASE_URL
+
 COPY . .
 RUN pnpm run build
 
@@ -20,4 +23,4 @@ COPY --from=builder /app/next.config.ts ./
 
 EXPOSE 3000
 
-CMD ["npm", "run", "start"] 
+CMD ["npm", "run", "start"]

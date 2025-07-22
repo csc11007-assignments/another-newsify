@@ -32,7 +32,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/8</span>
+                <span class='fraction'>0/7</span>
             </div>
         
             
@@ -251,7 +251,10 @@
 <a name='L186'></a><a href='#L186'>186</a>
 <a name='L187'></a><a href='#L187'>187</a>
 <a name='L188'></a><a href='#L188'>188</a>
-<a name='L189'></a><a href='#L189'>189</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
+<a name='L189'></a><a href='#L189'>189</a>
+<a name='L190'></a><a href='#L190'>190</a>
+<a name='L191'></a><a href='#L191'>191</a>
+<a name='L192'></a><a href='#L192'>192</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -435,21 +438,24 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js"><span class="cstat-no" title="statement not covered" >import { Controller, Get, Query, Param } from '@nestjs/common';</span>
-<span class="cstat-no" title="statement not covered" >import { ArticlesService } from './articles.service';</span>
-<span class="cstat-no" title="statement not covered" >import { ApiOperation, ApiResponse, ApiQuery, ApiParam } from '@nestjs/swagger';</span>
-<span class="cstat-no" title="statement not covered" >import { DateRangePaginationDto } from './dtos/time-range.dto';</span>
-<span class="cstat-no" title="statement not covered" >import { PaginationDto } from './dtos/pagination.dto';</span>
-<span class="cstat-no" title="statement not covered" >import { PaginatedArticlesResponseDto } from './dtos/paginated-articles-response.dto';</span>
-<span class="cstat-no" title="statement not covered" >import { CategoryPaginationDto } from './dtos/category-pagination.dto';</span>
-<span class="cstat-no" title="statement not covered" >import { TrendingPaginationDto } from './dtos/trending-pagination.dto';</span>
-<span class="cstat-no" title="statement not covered" >import { SearchService } from '../search/search.service';</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js"><span class="cstat-no" title="statement not covered" >import { Controller, Get, Param, Query } from '@nestjs/common';</span>
+<span class="cstat-no" title="statement not covered" >import { ApiOperation, ApiParam, ApiQuery, ApiResponse } from '@nestjs/swagger';</span>
 <span class="cstat-no" title="statement not covered" >import { SearchResponseDto } from '../search/dtos/search-response.dto';</span>
+<span class="cstat-no" title="statement not covered" >import { SearchService } from '../search/search.service';</span>
+<span class="cstat-no" title="statement not covered" >import { ArticlesService } from './articles.service';</span>
 <span class="cstat-no" title="statement not covered" >import { ArticleResponseDto } from './dtos/article-response.dto';</span>
+<span class="cstat-no" title="statement not covered" >import { CategoryPaginationDto } from './dtos/category-pagination.dto';</span>
+<span class="cstat-no" title="statement not covered" >import { PaginatedArticlesResponseDto } from './dtos/paginated-articles-response.dto';</span>
+<span class="cstat-no" title="statement not covered" >import { PaginationDto } from './dtos/pagination.dto';</span>
+<span class="cstat-no" title="statement not covered" >import { DateRangePaginationDto } from './dtos/time-range.dto';</span>
+<span class="cstat-no" title="statement not covered" >import { TrendingPaginationDto } from './dtos/trending-pagination.dto';</span>
 &nbsp;
 @Controller('articles')
 export <span class="cstat-no" title="statement not covered" >class <span class="cstat-no" title="statement not covered" ><span class="cstat-no" title="statement not covered" >ArticlesController </span>{</span></span>
@@ -600,9 +606,12 @@ export <span class="cstat-no" title="statement not covered" >class <span class="
     @Get('related')
 <span class="fstat-no" title="function not covered" >    async <span class="cstat-no" title="statement not covered" ></span>getRelatedArticles(</span>
         @Query('url') url: string,
-        @Query('top') top: number = <span class="branch-0 cbranch-no" title="branch not covered" >5,</span>
+        // @Query('top') top: number = 5,
     ): Promise&lt;ArticleResponseDto[]&gt; {
-<span class="cstat-no" title="statement not covered" >        return this.articlesService.getRelatedArticles(url, top);</span>
+<span class="cstat-no" title="statement not covered" >        return this.articlesService.getRelatedArticles(</span>
+            url,
+            // top,
+        );
     }
 &nbsp;
     @ApiOperation({
@@ -634,7 +643,7 @@ export <span class="cstat-no" title="statement not covered" >class <span class="
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-07-22T09:01:59.161Z
+                at 2025-07-22T09:06:45.824Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

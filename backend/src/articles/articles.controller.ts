@@ -1,14 +1,14 @@
-import { Controller, Get, Query, Param } from '@nestjs/common';
-import { ArticlesService } from './articles.service';
-import { ApiOperation, ApiResponse, ApiQuery, ApiParam } from '@nestjs/swagger';
-import { DateRangePaginationDto } from './dtos/time-range.dto';
-import { PaginationDto } from './dtos/pagination.dto';
-import { PaginatedArticlesResponseDto } from './dtos/paginated-articles-response.dto';
-import { CategoryPaginationDto } from './dtos/category-pagination.dto';
-import { TrendingPaginationDto } from './dtos/trending-pagination.dto';
-import { SearchService } from '../search/search.service';
+import { Controller, Get, Param, Query } from '@nestjs/common';
+import { ApiOperation, ApiParam, ApiQuery, ApiResponse } from '@nestjs/swagger';
 import { SearchResponseDto } from '../search/dtos/search-response.dto';
+import { SearchService } from '../search/search.service';
+import { ArticlesService } from './articles.service';
 import { ArticleResponseDto } from './dtos/article-response.dto';
+import { CategoryPaginationDto } from './dtos/category-pagination.dto';
+import { PaginatedArticlesResponseDto } from './dtos/paginated-articles-response.dto';
+import { PaginationDto } from './dtos/pagination.dto';
+import { DateRangePaginationDto } from './dtos/time-range.dto';
+import { TrendingPaginationDto } from './dtos/trending-pagination.dto';
 
 @Controller('articles')
 export class ArticlesController {
@@ -159,9 +159,12 @@ export class ArticlesController {
     @Get('related')
     async getRelatedArticles(
         @Query('url') url: string,
-        @Query('top') top: number = 5,
+        // @Query('top') top: number = 5,
     ): Promise<ArticleResponseDto[]> {
-        return this.articlesService.getRelatedArticles(url, top);
+        return this.articlesService.getRelatedArticles(
+            url,
+            // top,
+        );
     }
 
     @ApiOperation({

@@ -146,7 +146,7 @@ export class ArticlesService {
 
     async getRelatedArticles(
         url: string,
-        top: number = 5,
+        // top: number = 5,
     ): Promise<ArticleResponseDto[]> {
         const article = await this.articleRepository.findByUrl(url);
         if (!article) {

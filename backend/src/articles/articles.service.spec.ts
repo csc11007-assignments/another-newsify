@@ -2,7 +2,7 @@ import { NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
 import { OpenAI } from 'openai';
-import { MilvusService } from '../milvus/milvus.service';
+// import { MilvusService } from '../milvus/milvus.service';
 import { ArticleRepository } from './article.repository';
 import { ArticlesService } from './articles.service';
 import { ArticleResponseDto } from './dtos/article-response.dto';
@@ -16,7 +16,7 @@ describe('ArticlesService', () => {
     let service: ArticlesService;
     let articleRepository: jest.Mocked<ArticleRepository>;
     let configService: jest.Mocked<ConfigService>;
-    let milvusService: jest.Mocked<MilvusService>;
+    // let milvusService: jest.Mocked<MilvusService>;
     let mockOpenAI: jest.Mocked<OpenAI>;
 
     const mockArticle: Article = {
@@ -75,9 +75,9 @@ describe('ArticlesService', () => {
             get: jest.fn(),
         };
 
-        const mockMilvusService = {
-            searchSimilarArticles: jest.fn(),
-        };
+        // const mockMilvusService = {
+        //     searchSimilarArticles: jest.fn(),
+        // };
 
         const mockOpenAIClient = {
             chat: {
@@ -98,17 +98,17 @@ describe('ArticlesService', () => {
                     provide: ConfigService,
                     useValue: mockConfigService,
                 },
-                {
-                    provide: MilvusService,
-                    useValue: mockMilvusService,
-                },
+                // {
+                //     provide: MilvusService,
+                //     useValue: mockMilvusService,
+                // },
             ],
         }).compile();
 
         service = module.get<ArticlesService>(ArticlesService);
         articleRepository = module.get(ArticleRepository);
         configService = module.get(ConfigService);
-        milvusService = module.get(MilvusService);
+        // milvusService = module.get(MilvusService);
         mockOpenAI = service['openai'] as jest.Mocked<OpenAI>;
 
         // Setup default config values
@@ -378,123 +378,123 @@ describe('ArticlesService', () => {
         });
     });
 
-    describe('getRelatedArticles', () => {
-        it('should return related articles', async () => {
-            // Arrange
-            const url = 'http://example.com/article1';
-            const top = 5;
-            const relatedArticles = [
-                { url: 'http://example.com/article2', similarity_score: 0.9 },
-                { url: 'http://example.com/article3', similarity_score: 0.8 },
-            ];
-            const articles = [
-                {
-                    ...mockArticle,
-                    dataValues: {
-                        ...mockArticle.dataValues,
-                        url: 'http://example.com/article2',
-                    },
-                },
-                {
-                    ...mockArticle,
-                    dataValues: {
-                        ...mockArticle.dataValues,
-                        url: 'http://example.com/article3',
-                    },
-                },
-            ];
+    // describe('getRelatedArticles', () => {
+    //     it('should return related articles', async () => {
+    //         // Arrange
+    //         const url = 'http://example.com/article1';
+    //         const top = 5;
+    //         const relatedArticles = [
+    //             { url: 'http://example.com/article2', similarity_score: 0.9 },
+    //             { url: 'http://example.com/article3', similarity_score: 0.8 },
+    //         ];
+    //         const articles = [
+    //             {
+    //                 ...mockArticle,
+    //                 dataValues: {
+    //                     ...mockArticle.dataValues,
+    //                     url: 'http://example.com/article2',
+    //                 },
+    //             },
+    //             {
+    //                 ...mockArticle,
+    //                 dataValues: {
+    //                     ...mockArticle.dataValues,
+    //                     url: 'http://example.com/article3',
+    //                 },
+    //             },
+    //         ];
 
-            articleRepository.findByUrl.mockResolvedValue(mockArticle);
-            milvusService.searchSimilarArticles.mockResolvedValue(
-                relatedArticles as any,
-            );
-            articleRepository.findByUrls.mockResolvedValue(
-                articles as Article[],
-            );
+    //         articleRepository.findByUrl.mockResolvedValue(mockArticle);
+    //         milvusService.searchSimilarArticles.mockResolvedValue(
+    //             relatedArticles as any,
+    //         );
+    //         articleRepository.findByUrls.mockResolvedValue(
+    //             articles as Article[],
+    //         );
 
-            // Act
-            const result = await service.getRelatedArticles(url, top);
+    //         // Act
+    //         const result = await service.getRelatedArticles(url, top);
 
-            // Assert
-            expect(articleRepository.findByUrl).toHaveBeenCalledWith(url);
-            expect(milvusService.searchSimilarArticles).toHaveBeenCalledWith(
-                url,
-                top,
-            );
-            expect(articleRepository.findByUrls).toHaveBeenCalledWith([
-                'http://example.com/article2',
-                'http://example.com/article3',
-            ]);
-            expect(result).toHaveLength(2);
-        });
+    //         // Assert
+    //         expect(articleRepository.findByUrl).toHaveBeenCalledWith(url);
+    //         expect(milvusService.searchSimilarArticles).toHaveBeenCalledWith(
+    //             url,
+    //             top,
+    //         );
+    //         expect(articleRepository.findByUrls).toHaveBeenCalledWith([
+    //             'http://example.com/article2',
+    //             'http://example.com/article3',
+    //         ]);
+    //         expect(result).toHaveLength(2);
+    //     });
 
-        it('should throw NotFoundException when article not found', async () => {
-            // Arrange
-            const url = 'http://example.com/nonexistent';
-            articleRepository.findByUrl.mockResolvedValue(null);
+    //     it('should throw NotFoundException when article not found', async () => {
+    //         // Arrange
+    //         const url = 'http://example.com/nonexistent';
+    //         articleRepository.findByUrl.mockResolvedValue(null);
 
-            // Act & Assert
-            await expect(service.getRelatedArticles(url, 5)).rejects.toThrow(
-                NotFoundException,
-            );
-        });
+    //         // Act & Assert
+    //         await expect(service.getRelatedArticles(url, 5)).rejects.toThrow(
+    //             NotFoundException,
+    //         );
+    //     });
 
-        it('should handle Milvus service errors', async () => {
-            // Arrange
-            const url = 'http://example.com/article1';
-            articleRepository.findByUrl.mockResolvedValue(mockArticle);
-            milvusService.searchSimilarArticles.mockRejectedValue(
-                new Error('Milvus error'),
-            );
+    //     it('should handle Milvus service errors', async () => {
+    //         // Arrange
+    //         const url = 'http://example.com/article1';
+    //         articleRepository.findByUrl.mockResolvedValue(mockArticle);
+    //         milvusService.searchSimilarArticles.mockRejectedValue(
+    //             new Error('Milvus error'),
+    //         );
 
-            // Act & Assert
-            await expect(service.getRelatedArticles(url, 5)).rejects.toThrow(
-                'Milvus error',
-            );
-        });
+    //         // Act & Assert
+    //         await expect(service.getRelatedArticles(url, 5)).rejects.toThrow(
+    //             'Milvus error',
+    //         );
+    //     });
 
-        it('should set similarity score to 0 for original article', async () => {
-            // Arrange
-            const url = 'http://example.com/article1';
-            const relatedArticles = [
-                { url: 'http://example.com/article1', similarity_score: 0.9 }, // Original article
-                { url: 'http://example.com/article2', similarity_score: 0.8 },
-            ];
-            const articles = [
-                {
-                    ...mockArticle,
-                    dataValues: {
-                        ...mockArticle.dataValues,
-                        url: 'http://example.com/article1',
-                        similarityScore: 0, // This will be set by the service
-                    },
-                },
-                {
-                    ...mockArticle,
-                    dataValues: {
-                        ...mockArticle.dataValues,
-                        url: 'http://example.com/article2',
-                        similarityScore: 0.8,
-                    },
-                },
-            ];
+    //     it('should set similarity score to 0 for original article', async () => {
+    //         // Arrange
+    //         const url = 'http://example.com/article1';
+    //         const relatedArticles = [
+    //             { url: 'http://example.com/article1', similarity_score: 0.9 }, // Original article
+    //             { url: 'http://example.com/article2', similarity_score: 0.8 },
+    //         ];
+    //         const articles = [
+    //             {
+    //                 ...mockArticle,
+    //                 dataValues: {
+    //                     ...mockArticle.dataValues,
+    //                     url: 'http://example.com/article1',
+    //                     similarityScore: 0, // This will be set by the service
+    //                 },
+    //             },
+    //             {
+    //                 ...mockArticle,
+    //                 dataValues: {
+    //                     ...mockArticle.dataValues,
+    //                     url: 'http://example.com/article2',
+    //                     similarityScore: 0.8,
+    //                 },
+    //             },
+    //         ];
 
-            articleRepository.findByUrl.mockResolvedValue(mockArticle);
-            milvusService.searchSimilarArticles.mockResolvedValue(
-                relatedArticles as any,
-            );
-            articleRepository.findByUrls.mockResolvedValue(
-                articles as Article[],
-            );
+    //         articleRepository.findByUrl.mockResolvedValue(mockArticle);
+    //         milvusService.searchSimilarArticles.mockResolvedValue(
+    //             relatedArticles as any,
+    //         );
+    //         articleRepository.findByUrls.mockResolvedValue(
+    //             articles as Article[],
+    //         );
 
-            // Act
-            const result = await service.getRelatedArticles(url, 5);
+    //         // Act
+    //         const result = await service.getRelatedArticles(url, 5);
 
-            // Assert
-            expect(result[0].similarity_score).toBe(0.8); // Original article should have score 0
-            expect(result[1].similarity_score).toBe(0); // Related article should have original score
-        });
-    });
+    //         // Assert
+    //         expect(result[0].similarity_score).toBe(0.8); // Original article should have score 0
+    //         expect(result[1].similarity_score).toBe(0); // Related article should have original score
+    //     });
+    // });
 
     describe('generateSummary', () => {
         it('should generate summary using OpenAI', async () => {

@@ -1,11 +1,11 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { ArticleRepository } from './article.repository';
-import { Article } from './entities/article.model';
-import { PaginatedArticlesResponseDto } from './dtos/paginated-articles-response.dto';
-import { ArticleResponseDto } from './dtos/article-response.dto';
-import { OpenAI } from 'openai';
 import { ConfigService } from '@nestjs/config';
-import { MilvusService } from '../milvus/milvus.service';
+import { OpenAI } from 'openai';
+import { ArticleRepository } from './article.repository';
+import { ArticleResponseDto } from './dtos/article-response.dto';
+import { PaginatedArticlesResponseDto } from './dtos/paginated-articles-response.dto';
+import { Article } from './entities/article.model';
+// import { MilvusService } from '../milvus/milvus.service';
 
 @Injectable()
 export class ArticlesService {
@@ -14,7 +14,7 @@ export class ArticlesService {
     constructor(
         private readonly articleRepository: ArticleRepository,
         private readonly configService: ConfigService,
-        private readonly milvusService: MilvusService,
+        // private readonly milvusService: MilvusService,
     ) {
         this.openai = new OpenAI({
             apiKey: this.configService.get<string>('OPENAI_API_KEY'),
@@ -146,17 +146,19 @@ export class ArticlesService {
 
     async getRelatedArticles(
         url: string,
-        top: number = 5,
+        // top: number = 5,
     ): Promise<ArticleResponseDto[]> {
         const article = await this.articleRepository.findByUrl(url);
         if (!article) {
             throw new NotFoundException(`Article with URL ${url} not found`);
         }
 
-        const relatedArticles = await this.milvusService.searchSimilarArticles(
-            article.dataValues.url,
-            top,
-        );
+        // const relatedArticles = await this.milvusService.searchSimilarArticles(
+        //     article.dataValues.url,
+        //     top,
+        // );
+
+        const relatedArticles = [];
 
         const articleUrls = relatedArticles.map((related) => related.url);
         const articles = await this.articleRepository.findByUrls(articleUrls);

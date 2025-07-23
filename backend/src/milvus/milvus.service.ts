@@ -1,5 +1,5 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+// import { ConfigService } from '@nestjs/config';
 import { MilvusClient } from '@zilliz/milvus2-sdk-node';
 
 @Injectable()
@@ -7,13 +7,13 @@ export class MilvusService implements OnModuleInit {
     private client: MilvusClient;
     private readonly collectionName = 'articles';
 
-    constructor(private readonly configService: ConfigService) {}
+    // constructor(private readonly configService: ConfigService) {}
 
     onModuleInit() {
-        this.client = new MilvusClient({
-            address: this.configService.get<string>('MILVUS_ADDRESS'),
-            token: this.configService.get<string>('MILVUS_TOKEN'),
-        });
+        //this.client = new MilvusClient({
+        //     address: this.configService.get<string>('MILVUS_ADDRESS'),
+        //     token: this.configService.get<string>('MILVUS_TOKEN'),
+        // });
     }
 
     async getArticleVectorByUrl(url: string) {

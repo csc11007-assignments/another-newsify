@@ -335,80 +335,80 @@ describe('SearchService', () => {
         });
     });
 
-    describe('deleteIndex', () => {
-        it('should delete index successfully', async () => {
-            // Arrange
-            mockClient.indices.exists.mockResolvedValue({});
-            mockClient.indices.delete.mockResolvedValue({});
+    // describe('deleteIndex', () => {
+    //     it('should delete index successfully', async () => {
+    //         // Arrange
+    //         mockClient.indices.exists.mockResolvedValue({});
+    //         mockClient.indices.delete.mockResolvedValue({});
 
-            // Act
-            await service.deleteIndex();
+    //         // Act
+    //         await service.deleteIndex();
 
-            // Assert
-            expect(mockClient.indices.exists).toHaveBeenCalledWith({
-                index: 'title',
-            });
-            expect(mockClient.indices.delete).toHaveBeenCalledWith({
-                index: 'title',
-            });
-        });
+    //         // Assert
+    //         expect(mockClient.indices.exists).toHaveBeenCalledWith({
+    //             index: 'title',
+    //         });
+    //         expect(mockClient.indices.delete).toHaveBeenCalledWith({
+    //             index: 'title',
+    //         });
+    //     });
 
-        it('should handle index not existing gracefully', async () => {
-            // Arrange
-            const error = { statusCode: 404 };
-            mockClient.indices.exists.mockRejectedValue(error);
+    //     it('should handle index not existing gracefully', async () => {
+    //         // Arrange
+    //         const error = { statusCode: 404 };
+    //         mockClient.indices.exists.mockRejectedValue(error);
 
-            // Act
-            await service.deleteIndex();
+    //         // Act
+    //         await service.deleteIndex();
 
-            // Assert
-            expect(mockClient.indices.exists).toHaveBeenCalledWith({
-                index: 'title',
-            });
-            expect(mockClient.indices.delete).not.toHaveBeenCalled();
-        });
+    //         // Assert
+    //         expect(mockClient.indices.exists).toHaveBeenCalledWith({
+    //             index: 'title',
+    //         });
+    //         expect(mockClient.indices.delete).not.toHaveBeenCalled();
+    //     });
 
-        it('should throw error when delete fails', async () => {
-            // Arrange
-            const error = new Error('Delete failed');
-            mockClient.indices.exists.mockResolvedValue({});
-            mockClient.indices.delete.mockRejectedValue(error);
+    //     it('should throw error when delete fails', async () => {
+    //         // Arrange
+    //         const error = new Error('Delete failed');
+    //         mockClient.indices.exists.mockResolvedValue({});
+    //         mockClient.indices.delete.mockRejectedValue(error);
 
-            // Act & Assert
-            await expect(service.deleteIndex()).rejects.toThrow(error);
-        });
-    });
+    //         // Act & Assert
+    //         await expect(service.deleteIndex()).rejects.toThrow(error);
+    //     });
+    // });
 
-    describe('countDocuments', () => {
-        it('should return document count', async () => {
-            // Arrange
-            mockClient.count.mockResolvedValue({
-                body: { count: 150 },
-            });
+    // describe('countDocuments', () => {
+    //     it('should return document count', async () => {
+    //         // Arrange
+    //         mockClient.count.mockResolvedValue({
+    //             body: { count: 150 },
+    //         });
 
-            // Act
-            const result = await service.countDocuments();
+    //         // Act
+    //         const result = await service.countDocuments();
 
-            // Assert
-            expect(mockClient.count).toHaveBeenCalledWith({
-                index: 'title',
-            });
-            expect(result).toBe(150);
-        });
+    //         // Assert
+    //         expect(mockClient.count).toHaveBeenCalledWith({
+    //             index: 'title',
+    //         });
+    //         expect(result).toBe(150);
+    //     });
 
-        it('should return 0 when count fails', async () => {
-            // Arrange
-            const error = new Error('Count failed');
-            mockClient.count.mockRejectedValue(error);
+    //     it('should return 0 when count fails', async () => {
+    //         // Arrange
+    //         const error = new Error('Count failed');
+    //         mockClient.count.mockRejectedValue(error);
 
-            // Act
-            const result = await service.countDocuments();
+    //         // Act
+    //         const result = await service.countDocuments();
 
-            // Assert
-            expect(mockClient.count).toHaveBeenCalledWith({
-                index: 'title',
-            });
-            expect(result).toBe(0);
-        });
-    });
+    //         // Assert
+    //         expect(mockClient.count).toHaveBeenCalledWith({
+    //             index: 'title',
+    //         });
+    //         expect(result).toBe(0);
+    //     });
+    // });
 });

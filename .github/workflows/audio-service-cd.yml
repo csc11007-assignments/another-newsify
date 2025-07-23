@@ -118,7 +118,7 @@ jobs:
             exit 1
           fi
 
-      - name: Check coverage threshold (60% for audio service)  
+      - name: Check coverage threshold (40% for audio service)  
         working-directory: ./services/audio-service  
         run: |
           if [ -f coverage.json ]; then

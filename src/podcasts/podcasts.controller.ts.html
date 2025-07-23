@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/18</span>
+                <span class='fraction'>18/18</span>
             </div>
         
             
@@ -37,16 +37,16 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/4</span>
+                <span class='fraction'>4/4</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/16</span>
+                <span class='fraction'>16/16</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line low'></div>
+    <div class='status-line high'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -130,32 +130,29 @@
 <a name='L65'></a><a href='#L65'>65</a>
 <a name='L66'></a><a href='#L66'>66</a>
 <a name='L67'></a><a href='#L67'>67</a>
-<a name='L68'></a><a href='#L68'>68</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<a name='L68'></a><a href='#L68'>68</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">8x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -165,13 +162,13 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -192,22 +189,25 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js"><span class="cstat-no" title="statement not covered" >import { Controller, Get, Query, Param } from '@nestjs/common';</span>
-<span class="cstat-no" title="statement not covered" >import { PodcastsService } from './podcasts.service';</span>
-<span class="cstat-no" title="statement not covered" >import { ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';</span>
-<span class="cstat-no" title="statement not covered" >import { DateRangePaginationDto } from './dtos/time-range.dto';</span>
-<span class="cstat-no" title="statement not covered" >import { PaginationDto } from './dtos/pagination.dto';</span>
-<span class="cstat-no" title="statement not covered" >import { PaginatedPodcastsResponseDto } from './dtos/paginated-podcasts-response.dto';</span>
-<span class="cstat-no" title="statement not covered" >import { PodcastResponseDto } from './dtos/podcast-response.dto';</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { Controller, Get, Query, Param } from '@nestjs/common';
+import { PodcastsService } from './podcasts.service';
+import { ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
+import { DateRangePaginationDto } from './dtos/time-range.dto';
+import { PaginationDto } from './dtos/pagination.dto';
+import { PaginatedPodcastsResponseDto } from './dtos/paginated-podcasts-response.dto';
+import { PodcastResponseDto } from './dtos/podcast-response.dto';
 &nbsp;
 @Controller('podcasts')
-export <span class="cstat-no" title="statement not covered" >class <span class="cstat-no" title="statement not covered" ><span class="cstat-no" title="statement not covered" >PodcastsController </span>{</span></span>
-<span class="fstat-no" title="function not covered" >    constructor(private readonly <span class="cstat-no" title="statement not covered" >p</span>odcastsService: P</span>odcastsService) {}
+export class PodcastsController {
+    constructor(private readonly podcastsService: PodcastsService) {}
 &nbsp;
     @ApiOperation({ summary: 'Get all podcasts with pagination' })
     @ApiResponse({
@@ -216,10 +216,10 @@ export <span class="cstat-no" title="statement not covered" >class <span class="
         type: PaginatedPodcastsResponseDto,
     })
     @Get()
-<span class="fstat-no" title="function not covered" >    async <span class="cstat-no" title="statement not covered" ></span>getAllPodcasts(</span>
+    async getAllPodcasts(
         @Query() paginationDto: PaginationDto,
     ): Promise&lt;PaginatedPodcastsResponseDto&gt; {
-<span class="cstat-no" title="statement not covered" >        return this.podcastsService.getAllPodcasts(</span>
+        return this.podcastsService.getAllPodcasts(
             paginationDto.page,
             paginationDto.pageSize,
         );
@@ -232,10 +232,10 @@ export <span class="cstat-no" title="statement not covered" >class <span class="
         type: PaginatedPodcastsResponseDto,
     })
     @Get('time')
-<span class="fstat-no" title="function not covered" >    async <span class="cstat-no" title="statement not covered" ></span>getPodcastsByDateRangePaginated(</span>
+    async getPodcastsByDateRangePaginated(
         @Query() query: DateRangePaginationDto,
     ): Promise&lt;PaginatedPodcastsResponseDto&gt; {
-<span class="cstat-no" title="statement not covered" >        return this.podcastsService.getPodcastsBetweenDatesWithPagination(</span>
+        return this.podcastsService.getPodcastsBetweenDatesWithPagination(
             query.startTime,
             query.endTime,
             query.page,
@@ -259,9 +259,9 @@ export <span class="cstat-no" title="statement not covered" >class <span class="
         type: String,
     })
     @Get(':id')
-<span class="fstat-no" title="function not covered" >    async <span class="cstat-no" title="statement not covered" ></span>getPodcastById(@Param('id') id: string): Promise&lt;PodcastResponseDto&gt; {</span>
-        const podcast = <span class="cstat-no" title="statement not covered" >await this.podcastsService.getPodcastById(id);</span>
-<span class="cstat-no" title="statement not covered" >        return podcast;</span>
+    async getPodcastById(@Param('id') id: string): Promise&lt;PodcastResponseDto&gt; {
+        const podcast = await this.podcastsService.getPodcastById(id);
+        return podcast;
     }
 }
 &nbsp;</pre></td></tr></table></pre>
@@ -271,7 +271,7 @@ export <span class="cstat-no" title="statement not covered" >class <span class="
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-07-22T09:38:52.254Z
+                at 2025-07-23T13:03:28.869Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

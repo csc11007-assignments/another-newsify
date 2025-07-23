@@ -35,6 +35,111 @@ jobs:
           curl -s http://localhost:8000/health || curl -s http://localhost:8000/ || true
           pkill -f uvicorn || true
 
+      - name: Run unit tests (with pytest)
+        working-directory: ./services/audio-service
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_ENDPOINT: ${{ secrets.OPENAI_ENDPOINT }}
+          OPENAI_TTS_MODEL: ${{ secrets.OPENAI_TTS_MODEL }}
+          OPENAI_TRANSCRIPTION_MODEL: ${{ secrets.OPENAI_TRANSCRIPTION_MODEL }}
+          DB_NAME: ${{ secrets.DB_NAME }}
+          DB_PORT: ${{ secrets.DB_PORT }}
+          DATABASE: ${{ secrets.DATABASE }}
+          DB_USERNAME: ${{ secrets.DB_USERNAME }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          DB_DIALECT: ${{ secrets.DB_DIALECT }}
+          DO_DB_NAME: ${{ secrets.DO_DB_NAME }}
+          DO_DB_PORT: ${{ secrets.DO_DB_PORT }}
+          DO_DB_HOST: ${{ secrets.DO_DB_HOST }}
+          DO_DB_USERNAME: ${{ secrets.DO_DB_USERNAME }}
+          DO_DB_PASSWORD: ${{ secrets.DO_DB_PASSWORD }}
+          DO_SPACES_ACCESS_KEY: ${{ secrets.DO_SPACES_ACCESS_KEY }}
+          DO_SPACES_SECRET_KEY: ${{ secrets.DO_SPACES_SECRET_KEY }}
+          DO_SPACES_BUCKET: ${{ secrets.DO_SPACES_BUCKET }}
+          DO_SPACES_ENDPOINT: ${{ secrets.DO_SPACES_ENDPOINT }}
+          GOOGLE_GEMINI_API_KEY: ${{ secrets.GOOGLE_GEMINI_API_KEY }}
+          GOOGLE_GEMINI_MODEL: ${{ secrets.GOOGLE_GEMINI_MODEL }}
+          REDIS_HOST: ${{ secrets.REDIS_HOST }}
+          REDIS_PORT: ${{ secrets.REDIS_PORT }}
+          REDIS_USERNAME: ${{ secrets.REDIS_USERNAME }}
+          REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
+          REDIS_CHANNEL: ${{ secrets.REDIS_CHANNEL }}
+
+        run: |
+          python -m pytest 
+
+      - name: Run test coverage (with pytest)
+        working-directory: ./services/audio-service  # Fix: was trending-service
+        env:
+          DB_NAME: ${{ secrets.DB_NAME }}
+          DB_PORT: ${{ secrets.DB_PORT }}
+          DATABASE: ${{ secrets.DATABASE }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_ENDPOINT: ${{ secrets.OPENAI_ENDPOINT }}
+          OPENAI_TTS_MODEL: ${{ secrets.OPENAI_TTS_MODEL }}
+          OPENAI_TRANSCRIPTION_MODEL: ${{ secrets.OPENAI_TRANSCRIPTION_MODEL }}
+          DB_USERNAME: ${{ secrets.DB_USERNAME }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          DB_DIALECT: ${{ secrets.DB_DIALECT }}
+          DO_DB_NAME: ${{ secrets.DO_DB_NAME }}
+          DO_DB_PORT: ${{ secrets.DO_DB_PORT }}
+          DO_DB_HOST: ${{ secrets.DO_DB_HOST }}
+          DO_DB_USERNAME: ${{ secrets.DO_DB_USERNAME }}
+          DO_DB_PASSWORD: ${{ secrets.DO_DB_PASSWORD }}
+          DO_SPACES_ACCESS_KEY: ${{ secrets.DO_SPACES_ACCESS_KEY }}
+          DO_SPACES_SECRET_KEY: ${{ secrets.DO_SPACES_SECRET_KEY }}
+          DO_SPACES_BUCKET: ${{ secrets.DO_SPACES_BUCKET }}
+          DO_SPACES_ENDPOINT: ${{ secrets.DO_SPACES_ENDPOINT }}
+          GOOGLE_GEMINI_API_KEY: ${{ secrets.GOOGLE_GEMINI_API_KEY }}
+          GOOGLE_GEMINI_MODEL: ${{ secrets.GOOGLE_GEMINI_MODEL }}
+          REDIS_HOST: ${{ secrets.REDIS_HOST }}
+          REDIS_PORT: ${{ secrets.REDIS_PORT }}
+          REDIS_USERNAME: ${{ secrets.REDIS_USERNAME }}
+          REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
+          REDIS_CHANNEL: ${{ secrets.REDIS_CHANNEL }}
+
+        run: |
+          python -m pytest --cov=app --cov-report=term-missing --cov-report=json --cov-report=html
+
+      - name: Install jq for coverage parsing
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq bc
+
+      - name: Display test coverage summary
+        working-directory: ./services/audio-service 
+        run: |
+          if [ -f coverage.json ]; then
+            echo "=== COVERAGE SUMMARY ==="
+            jq -r '"Total coverage: " + (.totals.percent_covered | tostring) + "%"' coverage.json
+            jq -r '"Lines covered: " + (.totals.covered_lines | tostring) + "/" + (.totals.num_statements | tostring)' coverage.json
+          else
+            echo "Coverage report not found!"
+            exit 1
+          fi
+
+      - name: Check coverage threshold (60% for audio service)  
+        working-directory: ./services/audio-service  
+        run: |
+          if [ -f coverage.json ]; then
+            COVERAGE=$(jq -r '.totals.percent_covered' coverage.json)
+            echo "Line coverage: $COVERAGE%"
+            
+            THRESHOLD=50
+            
+            if (( $(echo "$COVERAGE < $THRESHOLD" | bc -l) )); then
+              echo "Coverage is below threshold of $THRESHOLD%!"
+              echo "Current coverage: $COVERAGE%"
+              exit 1
+            else
+              echo "Coverage meets threshold of $THRESHOLD%"
+              echo "Current coverage: $COVERAGE%"
+            fi
+          else
+            echo "Coverage report not found!"
+            exit 1
+          fi
+
   build-and-push:
     needs: build
     runs-on: ubuntu-latest
@@ -131,3 +236,33 @@ jobs:
       source_branch: ${{ github.ref_name }}
     secrets:
       ARGOCD_GITHUB_TOKEN: ${{ secrets.ARGOCD_GITHUB_TOKEN }}
+
+  notify-success:
+    needs: [build-and-push, update-infrastructure]
+    uses: ./.github/workflows/notification.yml
+    if: success()
+    with:
+      service_name: 'Audio Service'
+      status: 'success'
+      tag: ${{ needs.build-and-push.outputs.tag }}
+      environment: ${{ needs.build-and-push.outputs.env }}
+      notification_type: 'email'
+    secrets:
+      EMAIL_USERNAME: ${{ secrets.EMAIL_USERNAME }}
+      EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
+      NOTIFICATION_EMAILS: ${{ secrets.NOTIFICATION_EMAILS }}
+      EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
+
+  notify-failure:
+    needs: [build, build-and-push, update-infrastructure]
+    uses: ./.github/workflows/notification.yml
+    if: failure()
+    with:
+      service_name: 'Audio Service'
+      status: 'failure'
+      notification_type: 'email'
+    secrets:
+      EMAIL_USERNAME: ${{ secrets.EMAIL_USERNAME }}
+      EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
+      NOTIFICATION_EMAILS: ${{ secrets.NOTIFICATION_EMAILS }}
+      EMAIL_FROM: ${{ secrets.EMAIL_FROM }}

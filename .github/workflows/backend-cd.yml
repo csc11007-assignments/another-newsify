@@ -50,12 +50,12 @@ jobs:
       - name: Display test coverage summary
         run: cat backend/coverage/coverage-summary.json | jq .
 
-      - name: Check coverage threshold (39% lines)
+      - name: Check coverage threshold (40% lines)
         run: |
             COVERAGE=$(cat backend/coverage/coverage-summary.json | jq '.total.lines.pct')
             echo "Line coverage: $COVERAGE%"
-            if (( $(echo "$COVERAGE < 39" | bc -l) )); then
-              echo "Coverage is below threshold of 39%!"
+            if (( $(echo "$COVERAGE < 40" | bc -l) )); then
+              echo "Coverage is below threshold of 40%!"
               exit 1
             else
               echo "Coverage meets threshold."
@@ -124,7 +124,7 @@ jobs:
           
           # Determine the tag based on branch
           if [[ "$BRANCH_NAME" == "main" ]]; then
-            TAG="latest-${SHORT_SHA}"
+            TAG="main-${SHORT_SHA}"
             ENV="staging"
           elif [[ "$BRANCH_NAME" == "dev" ]]; then
             TAG="dev-${SHORT_SHA}"
@@ -190,3 +190,33 @@ jobs:
       source_branch: ${{ github.ref_name }}
     secrets:
       ARGOCD_GITHUB_TOKEN: ${{ secrets.ARGOCD_GITHUB_TOKEN }}
+
+  notify-success:
+    needs: [push-images, update-infrastructure]
+    uses: ./.github/workflows/notification.yml
+    if: success()
+    with:
+      service_name: 'Backend'
+      status: 'success'
+      tag: ${{ needs.push-images.outputs.tag }}
+      environment: ${{ needs.push-images.outputs.env }}
+      notification_type: 'email'
+    secrets:
+      EMAIL_USERNAME: ${{ secrets.EMAIL_USERNAME }}
+      EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
+      NOTIFICATION_EMAILS: ${{ secrets.NOTIFICATION_EMAILS }}
+      EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
+
+  notify-failure:
+    needs: [build, deploy-test-coverage, push-images, update-infrastructure]
+    uses: ./.github/workflows/notification.yml
+    if: failure()
+    with:
+      service_name: 'Backend'
+      status: 'failure'
+      notification_type: 'email'
+    secrets:
+      EMAIL_USERNAME: ${{ secrets.EMAIL_USERNAME }}
+      EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
+      NOTIFICATION_EMAILS: ${{ secrets.NOTIFICATION_EMAILS }}
+      EMAIL_FROM: ${{ secrets.EMAIL_FROM }}

@@ -16,7 +16,6 @@ pipeline {
             steps {
                 dir('backend') {
                     // Cài đặt Node.js và pnpm nếu Jenkins chưa có sẵn
-                    sh 'npm install -g pnpm'
                     sh 'node -v'
                     sh 'pnpm -v'
                 }

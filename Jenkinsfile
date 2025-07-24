@@ -1,10 +1,10 @@
 pipeline {
     agent any
 
-    environment {
-        // Đặt các biến môi trường cần thiết ở đây nếu có
-        // Ví dụ: NODE_ENV = 'test'
-    }
+    // environment {
+    //     // Đặt các biến môi trường cần thiết ở đây nếu có
+    //     // Ví dụ: NODE_ENV = 'test'
+    // }
 
     stages {
         stage('Checkout') {

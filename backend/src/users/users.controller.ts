@@ -5,7 +5,6 @@ import { ProfileDto } from '../auth/dtos/cred.dto';
 import { ATAuthGuard } from '../auth/guards/at-auth.guard';
 import { UsersService } from './users.service';
 
-// trigger jenkins
 @Controller('users')
 export class UsersController {
     constructor(private readonly usersService: UsersService) {}

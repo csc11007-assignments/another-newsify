@@ -73,8 +73,6 @@ Jenkins build succeeded!
 - Duration: ${currentBuild.durationString}
 
 Build URL: ${env.BUILD_URL}
-
--- Jenkins Pipeline
                 """
             )
         }
@@ -93,8 +91,6 @@ Jenkins build failed!
 
 Check logs & console output for more info:
 ${env.BUILD_URL}
-
--- Jenkins Pipeline
                 """
             )
         }

@@ -16,8 +16,7 @@ pipeline {
             steps {
                 dir('backend') {
                     // Cài đặt Node.js và pnpm nếu Jenkins chưa có sẵn
-                    sh 'corepack enable'
-                    sh 'corepack prepare pnpm@8.0.0 --activate'
+                    sh 'npm install -g pnpm'
                     sh 'node -v'
                     sh 'pnpm -v'
                 }

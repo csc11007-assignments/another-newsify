@@ -70,17 +70,17 @@ pipeline {
                 to: 'npkhang22@clc.fitus.edu.vn',
                 subject: "✅ [SUCCESS] ${env.JOB_NAME} #${env.BUILD_NUMBER}",
                 body: """
-                    ✅ Jenkins build *succeeded*!
+✅ Jenkins build *succeeded*!
 
-                    🔧 Project: ${env.JOB_NAME}
-                    🔢 Build number: #${env.BUILD_NUMBER}
-                    🌿 Branch: ${env.GIT_BRANCH}
-                    📦 Commit: ${env.GIT_COMMIT}
-                    🕒 Duration: ${currentBuild.durationString}
-                    
-                    🔗 Build URL: ${env.BUILD_URL}
+🔧 Project: ${env.JOB_NAME}
+🔢 Build number: #${env.BUILD_NUMBER}
+🌿 Branch: ${env.GIT_BRANCH}
+📦 Commit: ${env.GIT_COMMIT}
+🕒 Duration: ${currentBuild.durationString}
 
-                    -- Jenkins Pipeline
+🔗 Build URL: ${env.BUILD_URL}
+
+-- Jenkins Pipeline
                 """
             )
         }
@@ -89,18 +89,18 @@ pipeline {
                 to: 'npkhang22@clc.fitus.edu.vn',
                 subject: "❌ [FAILURE] ${env.JOB_NAME} #${env.BUILD_NUMBER}",
                 body: """
-                    ❌ Jenkins build *failed*!
+❌ Jenkins build *failed*!
 
-                    🔧 Project: ${env.JOB_NAME}
-                    🔢 Build number: #${env.BUILD_NUMBER}
-                    🌿 Branch: ${env.GIT_BRANCH}
-                    📦 Commit: ${env.GIT_COMMIT}
-                    🕒 Duration: ${currentBuild.durationString}
-                    
-                    🔍 Check logs & console output for more info:
-                    ${env.BUILD_URL}
+🔧 Project: ${env.JOB_NAME}
+🔢 Build number: #${env.BUILD_NUMBER}
+🌿 Branch: ${env.GIT_BRANCH}
+📦 Commit: ${env.GIT_COMMIT}
+🕒 Duration: ${currentBuild.durationString}
 
-                    -- Jenkins Pipeline
+🔍 Check logs & console output for more info:
+${env.BUILD_URL}
+
+-- Jenkins Pipeline
                 """
             )
         }

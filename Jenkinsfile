@@ -1,10 +1,10 @@
 pipeline {
     agent any
 
-    // environment {
-    //     // Đặt các biến môi trường cần thiết ở đây nếu có
-    //     // Ví dụ: NODE_ENV = 'test'
-    // }
+    environment {
+        // Đặt các biến môi trường cần thiết ở đây nếu có
+        // Ví dụ: NODE_ENV = 'test'
+    }
 
     stages {
         stage('Checkout') {
@@ -66,14 +66,43 @@ pipeline {
 
     post {
         success {
-            emailext to: 'npkhang22@clc.fitus.edu.vn',
-                    subject: "Jenkins Build Success: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
-                    body: "Good news! The build succeeded.\nCheck details at: ${env.BUILD_URL}"
+            emailext(
+                to: 'npkhang22@clc.fitus.edu.vn',
+                subject: "✅ [SUCCESS] ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                body: """
+                    ✅ Jenkins build *succeeded*!
+
+                    🔧 Project: ${env.JOB_NAME}
+                    🔢 Build number: #${env.BUILD_NUMBER}
+                    🌿 Branch: ${env.GIT_BRANCH}
+                    📦 Commit: ${env.GIT_COMMIT}
+                    🕒 Duration: ${currentBuild.durationString}
+                    
+                    🔗 Build URL: ${env.BUILD_URL}
+
+                    -- Jenkins Pipeline
+                """
+            )
         }
         failure {
-            emailext to: 'npkhang22@clc.fitus.edu.vn',
-                    subject: "Jenkins Build Failed: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
-                    body: "Unfortunately, the build failed.\nCheck details at: ${env.BUILD_URL}"
+            emailext(
+                to: 'npkhang22@clc.fitus.edu.vn',
+                subject: "❌ [FAILURE] ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                body: """
+                    ❌ Jenkins build *failed*!
+
+                    🔧 Project: ${env.JOB_NAME}
+                    🔢 Build number: #${env.BUILD_NUMBER}
+                    🌿 Branch: ${env.GIT_BRANCH}
+                    📦 Commit: ${env.GIT_COMMIT}
+                    🕒 Duration: ${currentBuild.durationString}
+                    
+                    🔍 Check logs & console output for more info:
+                    ${env.BUILD_URL}
+
+                    -- Jenkins Pipeline
+                """
+            )
         }
     }
 }

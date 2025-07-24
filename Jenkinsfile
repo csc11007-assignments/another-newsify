@@ -1,11 +1,6 @@
 pipeline {
     agent any
-
-    // environment {
-    //     // Đặt các biến môi trường cần thiết ở đây nếu có
-    //     // Ví dụ: NODE_ENV = 'test'
-    // }
-
+   
     stages {
         stage('Checkout') {
             steps {
@@ -15,7 +10,6 @@ pipeline {
         stage('Setup Node & pnpm') {
             steps {
                 dir('backend') {
-                    // Cài đặt Node.js và pnpm nếu Jenkins chưa có sẵn
                     sh 'node -v'
                     sh 'pnpm -v'
                 }
@@ -70,15 +64,15 @@ pipeline {
                 to: 'npkhang22@clc.fitus.edu.vn',
                 subject: "✅ [SUCCESS] ${env.JOB_NAME} #${env.BUILD_NUMBER}",
                 body: """
-✅ Jenkins build *succeeded*!
+Jenkins build succeeded!
 
-🔧 Project: ${env.JOB_NAME}
-🔢 Build number: #${env.BUILD_NUMBER}
-🌿 Branch: ${env.GIT_BRANCH}
-📦 Commit: ${env.GIT_COMMIT}
-🕒 Duration: ${currentBuild.durationString}
+- Project: ${env.JOB_NAME}
+- Build number: #${env.BUILD_NUMBER}
+- Branch: ${env.GIT_BRANCH}
+- Commit: ${env.GIT_COMMIT}
+- Duration: ${currentBuild.durationString}
 
-🔗 Build URL: ${env.BUILD_URL}
+Build URL: ${env.BUILD_URL}
 
 -- Jenkins Pipeline
                 """
@@ -89,15 +83,15 @@ pipeline {
                 to: 'npkhang22@clc.fitus.edu.vn',
                 subject: "❌ [FAILURE] ${env.JOB_NAME} #${env.BUILD_NUMBER}",
                 body: """
-❌ Jenkins build *failed*!
+Jenkins build failed!
 
-🔧 Project: ${env.JOB_NAME}
-🔢 Build number: #${env.BUILD_NUMBER}
-🌿 Branch: ${env.GIT_BRANCH}
-📦 Commit: ${env.GIT_COMMIT}
-🕒 Duration: ${currentBuild.durationString}
+- Project: ${env.JOB_NAME}
+- Build number: #${env.BUILD_NUMBER}
+- Branch: ${env.GIT_BRANCH}
+- Commit: ${env.GIT_COMMIT}
+- Duration: ${currentBuild.durationString}
 
-🔍 Check logs & console output for more info:
+Check logs & console output for more info:
 ${env.BUILD_URL}
 
 -- Jenkins Pipeline

@@ -42,18 +42,38 @@ pipeline {
                 }
             }
         }
+        stage('Test Coverage') {
+            steps {
+                dir('backend') {
+                    sh 'pnpm test:cov'
+                    sh '''
+                        if ! command -v jq > /dev/null; then
+                          apt-get update && apt-get install -y jq bc
+                        fi
+                        COVERAGE=$(cat coverage/coverage-summary.json | jq '.total.lines.pct')
+                        echo "Line coverage: $COVERAGE%"
+                        if (( $(echo "$COVERAGE < 40" | bc -l) )); then
+                          echo "Coverage is below threshold of 40%!" >&2
+                          exit 1
+                        else
+                          echo "Coverage meets threshold."
+                        fi
+                    '''
+                }
+            }
+        }
     }
 
     post {
         success {
-            mail to: 'npkhang287@gmail.com',
-                 subject: "Jenkins Build Success: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
-                 body: "Good news! The build succeeded.\nCheck details at: ${env.BUILD_URL}"
+            emailext to: 'npkhang287@gmail.com',
+                    subject: "Jenkins Build Success: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                    body: "Good news! The build succeeded.\nCheck details at: ${env.BUILD_URL}"
         }
         failure {
-            mail to: 'npkhang287@gmail.com',
-                 subject: "Jenkins Build Failed: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
-                 body: "Unfortunately, the build failed.\nCheck details at: ${env.BUILD_URL}"
+            emailext to: 'npkhang287@gmail.com',
+                    subject: "Jenkins Build Failed: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                    body: "Unfortunately, the build failed.\nCheck details at: ${env.BUILD_URL}"
         }
     }
 }
